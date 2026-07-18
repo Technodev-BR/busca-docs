@@ -37,16 +37,16 @@ jobs:
           format: svg
           output: export
 
-      # Move os SVGs renderizados para docs/public/diagramas (servidos como /diagramas/*).
-      # A drawio-export-action roda num container Docker como root, entao a pasta export/
-      # e os SVGs saem com dono root. Devolvemos a posse ao usuario do runner antes de
-      # copiar/remover, senao o rm falha com "permission denied".
-      - name: Mover SVGs para docs/public/diagramas
-        run: |
-          sudo chown -R "$(id -u):$(id -g)" docs/public/diagramas
-          cp docs/public/diagramas/export/*.svg docs/public/diagramas/ || true
-          rm -rf docs/public/diagramas/export
-          echo "Arquivos disponiveis:" && ls -la docs/public/diagramas || true
+       # Move os SVGs renderizados para docs/public/diagramas (servidos como /diagramas/*).
+       # A drawio-export-action roda num container Docker como root, entao a pasta export/
+       # e os SVGs saem com dono root. Devolvemos a posse ao usuario do runner antes de
+       # copiar/remover, senao o rm falha com "permission denied".
+       - name: Mover SVGs para docs/public/diagramas
+         run: |
+           sudo chown -R "$(id -u):$(id -g)" docs/public/diagramas
+           cp docs/public/diagramas/export/*.svg docs/public/diagramas/ || true
+           rm -rf docs/public/diagramas/export
+           echo "Arquivos disponiveis:" && ls -la docs/public/diagramas || true
 
       - name: Setup Node
         uses: actions/setup-node@v4
