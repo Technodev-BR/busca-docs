@@ -491,7 +491,7 @@ components:
           example: 0.85
         versaoScore:
           type: string
-          description: Versão do algoritmo de score usado (ex.: v0-heuristico).
+          description: "Versão do algoritmo de score usado (ex.: v0-heuristico)."
           example: v0-heuristico
         fatores:
           type: array
