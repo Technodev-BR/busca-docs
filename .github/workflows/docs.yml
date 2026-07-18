@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -37,10 +37,10 @@ jobs:
           format: svg
           output: export
 
-       # Move os SVGs renderizados para docs/public/diagramas (servidos como /diagramas/*).
-       # A drawio-export-action roda num container Docker como root, entao a pasta export/
-       # e os SVGs saem com dono root. Devolvemos a posse ao usuario do runner antes de
-       # copiar/remover, senao o rm falha com "permission denied".
+      # Move os SVGs renderizados para docs/public/diagramas (servidos como /diagramas/*).
+      # A drawio-export-action roda num container Docker como root, entao a pasta export/
+      # e os SVGs saem com dono root. Devolvemos a posse ao usuario do runner antes de
+      # copiar/remover, senao o rm falha com "permission denied".
       - name: Mover SVGs para docs/public/diagramas
         run: |
           sudo chown -R "$(id -u):$(id -g)" docs/public/diagramas
@@ -48,10 +48,11 @@ jobs:
           rm -rf docs/public/diagramas/export
           echo "Arquivos disponiveis:" && ls -la docs/public/diagramas || true
 
+          
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Instalar dependencias
         run: npm install
@@ -60,10 +61,10 @@ jobs:
         run: npm run docs:build
 
       - name: Configurar Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Publicar artefato
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: docs/.vitepress/dist
 
@@ -76,4 +77,4 @@ jobs:
     steps:
       - name: Deploy no GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

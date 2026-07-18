@@ -9,6 +9,7 @@ assistida por **IA**.
 > documentamos objetivo, regras de negócio, arquitetura e decisões; o código nasce a partir daqui.
 > É **markdown puro** (sem site a gerar) — ver [ADR-0004](arquitetura/decisoes/0004-documentacao-markdown-puro.md).
 
+
 > Novo por aqui? Comece pelos [Primeiros passos](visao-geral/primeiros-passos.md).
 
 ## Por onde começar
