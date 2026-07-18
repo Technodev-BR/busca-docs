@@ -1,0 +1,18 @@
+# MkDocs
+site/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Ambiente / segredos
+.env
+.env.*
+!.env.example
+
+# Editores / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

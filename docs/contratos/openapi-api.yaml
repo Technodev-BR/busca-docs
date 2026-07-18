@@ -1,0 +1,572 @@
+openapi: 3.0.3
+info:
+  title: Busca-Busca — API Pública (consulta)
+  description: >
+    API pública consumida pelo frontend (Angular). Expõe busca/filtro de imóveis, detalhe com
+    análise de custo e histórico, e engajamento (favoritos/alertas) para usuários autenticados.
+    Erros seguem Problem Details (RFC 7807). Ver casos de uso em docs/servicos/backend-java.md.
+  version: 1.0.0
+servers:
+  - url: https://api.technodev.com.br
+    description: Produção (via Traefik/Cloudflare)
+  - url: http://localhost:8080
+    description: Desenvolvimento
+tags:
+  - name: imoveis
+    description: Busca e detalhe de imóveis (público)
+  - name: favoritos
+    description: Favoritos do usuário (requer autenticação)
+  - name: alertas
+    description: Alertas por filtro salvo (requer autenticação)
+  - name: auth
+    description: Autenticação
+
+paths:
+  /api/v1/imoveis:
+    get:
+      tags: [imoveis]
+      summary: Busca imóveis com filtros, ordenação e paginação
+      operationId: buscarImoveis
+      description: >
+        Casos de uso BuscarImoveisUseCase. Por padrão retorna apenas status=disponivel;
+        use incluirEncerrados=true para trazer vendidos/removidos (RN-09).
+      parameters:
+        - { $ref: '#/components/parameters/Uf' }
+        - { $ref: '#/components/parameters/Cidade' }
+        - name: tipo
+          in: query
+          description: "Tipo do imóvel (ex.: Casa, Apartamento, Terreno)."
+          schema: { type: string }
+        - name: modalidade
+          in: query
+          description: "Modalidade de venda (ex.: Leilão SFI, Venda Direta)."
+          schema: { type: string }
+        - name: precoMin
+          in: query
+          schema: { type: number, format: double }
+        - name: precoMax
+          in: query
+          schema: { type: number, format: double }
+        - name: descontoRealMin
+          in: query
+          description: Desconto real mínimo (%) já considerando o custo total.
+          schema: { type: number, format: double, example: 30 }
+        - name: ocupacao
+          in: query
+          schema: { $ref: '#/components/schemas/Ocupacao' }
+        - name: incluirEncerrados
+          in: query
+          description: Se true, inclui imóveis vendidos/removidos (padrão false).
+          schema: { type: boolean, default: false }
+        - name: q
+          in: query
+          description: Busca textual livre (endereço, bairro, cidade).
+          schema: { type: string }
+        - name: lat
+          in: query
+          description: Latitude do centro (busca por raio; usar com lng e raioKm).
+          schema: { type: number, format: double }
+        - name: lng
+          in: query
+          description: Longitude do centro (busca por raio).
+          schema: { type: number, format: double }
+        - name: raioKm
+          in: query
+          description: Raio em km a partir de (lat,lng).
+          schema: { type: number, format: double, example: 10 }
+        - name: bbox
+          in: query
+          description: "Bounding box: minLng,minLat,maxLng,maxLat (para busca no mapa)."
+          schema: { type: string, example: '-46.8,-23.7,-46.3,-23.4' }
+        - name: ordenarPor
+          in: query
+          schema:
+            type: string
+            enum: [descontoReal, preco, score, dataSegundoLeilao, atualizadoEm]
+            default: descontoReal
+        - name: ordem
+          in: query
+          schema: { type: string, enum: [asc, desc], default: desc }
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/Size' }
+      responses:
+        '200':
+          description: Página de resultados
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaginaImoveis' }
+        '400':
+          $ref: '#/components/responses/ProblemaValidacao'
+
+  /api/v1/imoveis/{id}:
+    get:
+      tags: [imoveis]
+      summary: Detalhe do imóvel com análise de custo
+      operationId: obterImovel
+      description: Caso de uso ObterImovelUseCase (imóvel + detalhe + fotos + análise + histórico).
+      parameters:
+        - { $ref: '#/components/parameters/ImovelId' }
+      responses:
+        '200':
+          description: Detalhe do imóvel
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ImovelDetalhe' }
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+
+  /api/v1/imoveis/{id}/historico:
+    get:
+      tags: [imoveis]
+      summary: Histórico de preço/status do imóvel
+      operationId: listarHistoricoPreco
+      description: Caso de uso ListarHistoricoPrecoUseCase (timeline para o gráfico de tendência).
+      parameters:
+        - { $ref: '#/components/parameters/ImovelId' }
+      responses:
+        '200':
+          description: Lista de pontos do histórico (mais recente primeiro)
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/HistoricoPreco' }
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+
+  /api/v1/favoritos:
+    get:
+      tags: [favoritos]
+      summary: Lista os favoritos do usuário
+      operationId: listarFavoritos
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: Favoritos do usuário
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Favorito' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+    post:
+      tags: [favoritos]
+      summary: Adiciona um imóvel aos favoritos
+      operationId: favoritarImovel
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [imovelId]
+              properties:
+                imovelId: { type: integer, format: int64, example: 1234 }
+      responses:
+        '201':
+          description: Favorito criado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Favorito' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '409': { description: Imóvel já favoritado }
+
+  /api/v1/favoritos/{imovelId}:
+    delete:
+      tags: [favoritos]
+      summary: Remove um imóvel dos favoritos
+      operationId: desfavoritarImovel
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - name: imovelId
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '204': { description: Removido }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /api/v1/alertas:
+    get:
+      tags: [alertas]
+      summary: Lista os alertas do usuário
+      operationId: listarAlertas
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: Alertas do usuário
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Alerta' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+    post:
+      tags: [alertas]
+      summary: Cria um alerta (filtro salvo + canal)
+      operationId: criarAlerta
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CriarAlerta' }
+      responses:
+        '201':
+          description: Alerta criado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Alerta' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+
+  /api/v1/alertas/{id}:
+    put:
+      tags: [alertas]
+      summary: "Atualiza um alerta (ex.: ativar/desativar)"
+      operationId: atualizarAlerta
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CriarAlerta' }
+      responses:
+        '200':
+          description: Alerta atualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Alerta' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+    delete:
+      tags: [alertas]
+      summary: Remove um alerta
+      operationId: removerAlerta
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '204': { description: Removido }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /oauth2/authorization/{provedor}:
+    get:
+      tags: [auth]
+      summary: Inicia o login social (redireciona ao provedor)
+      operationId: iniciarLoginSocial
+      description: >
+        Endpoint do Spring Security OAuth2 Client. Redireciona (302) ao Google/GitHub
+        (Authorization Code + PKCE). O front apenas navega para esta URL. Ver ADR-0013.
+      parameters:
+        - name: provedor
+          in: path
+          required: true
+          schema: { $ref: '#/components/schemas/Provedor' }
+      responses:
+        '302': { description: Redireciona ao provedor de identidade (OIDC) }
+
+  /login/oauth2/code/{provedor}:
+    get:
+      tags: [auth]
+      summary: Callback do provedor (uso interno do OAuth2)
+      operationId: callbackLoginSocial
+      description: >
+        Recebe o retorno do provedor, valida state/PKCE/nonce, faz upsert do usuário e cria a
+        sessão em cookie HttpOnly. Não é chamado diretamente pelo front.
+      parameters:
+        - name: provedor
+          in: path
+          required: true
+          schema: { $ref: '#/components/schemas/Provedor' }
+      responses:
+        '302': { description: Redireciona de volta ao front autenticado (cookie de sessão) }
+
+  /api/v1/auth/me:
+    get:
+      tags: [auth]
+      summary: Retorna o usuário autenticado
+      operationId: obterUsuarioAtual
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: Usuário atual
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Usuario' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+
+  /api/v1/auth/refresh:
+    post:
+      tags: [auth]
+      summary: Renova o access token (rotação do refresh token)
+      operationId: refreshToken
+      description: >
+        Usa o refresh token (cookie HttpOnly de path restrito) para emitir um novo access token e
+        um novo refresh token (rotação). Reúso de um refresh já usado invalida toda a família de
+        tokens. Ver ADR-0013.
+      security: [{ refreshCookie: [] }]
+      responses:
+        '204': { description: Novos cookies de access/refresh definidos }
+        '401': { description: Refresh token ausente, expirado ou revogado }
+
+  /api/v1/auth/logout:
+    post:
+      tags: [auth]
+      summary: Encerra a sessão (revoga o refresh token)
+      operationId: logout
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - name: todosDispositivos
+          in: query
+          description: Se true, revoga os refresh tokens de todos os dispositivos do usuário.
+          schema: { type: boolean, default: false }
+      responses:
+        '204': { description: Sessão encerrada (cookies invalidados) }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: ACCESS_TOKEN
+      description: >
+        Access token (JWT curto, ~15 min) em cookie HttpOnly + Secure + SameSite=Lax, emitido após o
+        login social (OIDC Google/GitHub). Não fica em localStorage. Escritas exigem token CSRF.
+        Renove via POST /api/v1/auth/refresh. Ver ADR-0013.
+    refreshCookie:
+      type: apiKey
+      in: cookie
+      name: REFRESH_TOKEN
+      description: >
+        Refresh token opaco em cookie HttpOnly com path restrito a /api/v1/auth/refresh. Rotacionado
+        a cada uso, com detecção de reúso. Guardado hasheado no servidor (revogável).
+
+  parameters:
+    Uf:
+      name: uf
+      in: query
+      description: Sigla da UF (2 letras).
+      schema: { type: string, minLength: 2, maxLength: 2, example: SP }
+    Cidade:
+      name: cidade
+      in: query
+      schema: { type: string, example: ADAMANTINA }
+    ImovelId:
+      name: id
+      in: path
+      required: true
+      description: Identificador interno do imóvel.
+      schema: { type: integer, format: int64, example: 1234 }
+    Page:
+      name: page
+      in: query
+      description: Página (base 0).
+      schema: { type: integer, minimum: 0, default: 0 }
+    Size:
+      name: size
+      in: query
+      description: Tamanho da página.
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+
+  schemas:
+    StatusImovel:
+      type: string
+      enum: [disponivel, vendido, suspenso, removido]
+    Ocupacao:
+      type: string
+      enum: [ocupado, desocupado, desconhecido]
+    StatusEnriquecimento:
+      type: string
+      enum: [pendente, ok, parcial, falha]
+    CanalAlerta:
+      type: string
+      enum: [email, push, webhook]
+
+    Localizacao:
+      type: object
+      properties:
+        lat: { type: number, format: double, example: -21.68 }
+        lng: { type: number, format: double, example: -51.07 }
+
+    ImovelResumo:
+      type: object
+      description: Dados para o card na lista/mapa.
+      properties:
+        id: { type: integer, format: int64, example: 1234 }
+        codigo: { type: string, example: '1444408501866' }
+        titulo: { type: string, example: 'ADAMANTINA - VILA JOAQUINA' }
+        tipo: { type: string, example: Casa }
+        modalidade: { type: string, example: 'Leilão SFI' }
+        cidade: { type: string, example: ADAMANTINA }
+        uf: { type: string, example: SP }
+        bairro: { type: string, example: VILA JOAQUINA }
+        fotoCapa: { type: string, format: uri }
+        valorMinimo: { type: number, format: double, example: 501000.00 }
+        valorSegundoLeilao: { type: number, format: double, example: 300600.00 }
+        descontoPct: { type: number, format: double, example: 0.0 }
+        descontoRealPct:
+          type: number
+          format: double
+          description: Desconto real considerando o custo total (ver Cálculo de custos).
+          example: 34.5
+        custoTotal: { type: number, format: double, example: 328000.00 }
+        score: { type: integer, example: 78 }
+        status: { $ref: '#/components/schemas/StatusImovel' }
+        ocupacao: { $ref: '#/components/schemas/Ocupacao' }
+        localizacao: { $ref: '#/components/schemas/Localizacao' }
+
+    ImovelDetalhe:
+      allOf:
+        - $ref: '#/components/schemas/ImovelResumo'
+        - type: object
+          properties:
+            endereco: { type: string }
+            enderecoCompleto: { type: string }
+            cep: { type: string, example: '17800-000' }
+            areaTotal: { type: number, format: double }
+            areaPrivativa: { type: number, format: double }
+            areaTerreno: { type: number, format: double }
+            quartos: { type: integer }
+            valorAvaliacao: { type: number, format: double }
+            valorPrimeiroLeilao: { type: number, format: double }
+            dataPrimeiroLeilao: { type: string, format: date-time }
+            dataSegundoLeilao: { type: string, format: date-time }
+            leiloeiro: { type: string }
+            edital: { type: string }
+            numeroItem: { type: string }
+            matricula: { type: string }
+            comarca: { type: string }
+            oficio: { type: string }
+            inscricaoImobiliaria: { type: string }
+            aceitaFgts: { type: boolean }
+            aceitaFinanciamento: { type: boolean }
+            despesasCondominioComprador: { type: boolean }
+            despesasTributosComprador: { type: boolean }
+            descricaoCompleta: { type: string }
+            editalUrl: { type: string, format: uri }
+            matriculaUrl: { type: string, format: uri }
+            fotos:
+              type: array
+              items: { type: string, format: uri }
+            analise: { $ref: '#/components/schemas/AnaliseCusto' }
+            statusEnriquecimento: { $ref: '#/components/schemas/StatusEnriquecimento' }
+            atualizadoEm: { type: string, format: date-time }
+
+    AnaliseCusto:
+      type: object
+      properties:
+        itbi: { type: number, format: double }
+        custas: { type: number, format: double }
+        registro: { type: number, format: double }
+        dividas: { type: number, format: double }
+        reformaEstimada: { type: number, format: double }
+        custoTotal: { type: number, format: double }
+        descontoRealPct: { type: number, format: double }
+        score: { type: integer }
+        statusConfianca: { $ref: '#/components/schemas/StatusEnriquecimento' }
+        calculadoEm: { type: string, format: date-time }
+
+    HistoricoPreco:
+      type: object
+      properties:
+        valor: { type: number, format: double }
+        descontoPct: { type: number, format: double }
+        status: { $ref: '#/components/schemas/StatusImovel' }
+        capturadoEm: { type: string, format: date-time }
+
+    PaginaImoveis:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/ImovelResumo' }
+        page: { type: integer, example: 0 }
+        size: { type: integer, example: 20 }
+        totalElements: { type: integer, format: int64, example: 342 }
+        totalPages: { type: integer, example: 18 }
+
+    Favorito:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        imovel: { $ref: '#/components/schemas/ImovelResumo' }
+        criadoEm: { type: string, format: date-time }
+
+    CriarAlerta:
+      type: object
+      required: [filtro, canal]
+      properties:
+        filtro:
+          type: object
+          description: Mesmos parâmetros da busca (uf, cidade, tipo, descontoRealMin...).
+          additionalProperties: true
+          example: { uf: SP, tipo: Casa, descontoRealMin: 30 }
+        canal: { $ref: '#/components/schemas/CanalAlerta' }
+        ativo: { type: boolean, default: true }
+
+    Alerta:
+      allOf:
+        - $ref: '#/components/schemas/CriarAlerta'
+        - type: object
+          properties:
+            id: { type: integer, format: int64 }
+            criadoEm: { type: string, format: date-time }
+
+    Provedor:
+      type: string
+      description: Provedor de identidade (login social, OIDC).
+      enum: [google, github]
+
+    Usuario:
+      type: object
+      description: Usuário autenticado (sem senha — login social, ver ADR-0013).
+      properties:
+        id: { type: integer, format: int64 }
+        nome: { type: string, example: 'Maria Silva' }
+        email: { type: string, format: email }
+        avatarUrl: { type: string, format: uri }
+        provedor: { $ref: '#/components/schemas/Provedor' }
+
+    Problem:
+      type: object
+      properties:
+        type: { type: string, example: 'https://buscabusca/errors/validacao' }
+        title: { type: string, example: 'Requisição inválida' }
+        status: { type: integer, example: 400 }
+        detail: { type: string, example: 'Parâmetro "raioKm" exige lat e lng.' }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              campo: { type: string }
+              mensagem: { type: string }
+
+  responses:
+    ProblemaValidacao:
+      description: Erro de validação
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    NaoEncontrado:
+      description: Recurso não encontrado
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    NaoAutenticado:
+      description: Token ausente ou inválido
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }

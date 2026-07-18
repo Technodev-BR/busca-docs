@@ -1,0 +1,254 @@
+openapi: 3.0.3
+info:
+  title: Busca-Busca — API de Ingestão (interna)
+  description: >
+    API interna consumida pelo coletor (Python) para enviar lotes de imóveis coletados ao
+    backend (Java). O backend valida, grava o coleta_bruta e publica eventos no RabbitMQ.
+    Não é exposta publicamente.
+  version: 1.0.0
+servers:
+  - url: http://backend:8080
+    description: Rede interna (Docker/K8s)
+tags:
+  - name: ingestao
+    description: Recebimento de imóveis coletados
+
+paths:
+  /internal/ingest/imoveis:
+    post:
+      tags: [ingestao]
+      summary: Recebe um lote de imóveis coletados
+      operationId: ingerirImoveis
+      security:
+        - internalToken: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoteImoveis'
+      responses:
+        '202':
+          description: Lote aceito para processamento assíncrono
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultadoIngestao'
+        '400':
+          $ref: '#/components/responses/ProblemaValidacao'
+        '401':
+          description: Token interno ausente ou inválido
+        '409':
+          description: Lote duplicado (mesma Idempotency-Key já processada)
+
+  /internal/ingest/imoveis/{codigo}/detalhe:
+    post:
+      tags: [ingestao]
+      summary: Recebe o detalhe enriquecido de um imóvel (coletor de detalhe)
+      description: >
+        Enviado pelo coletor de detalhe (Python) após raspar a página
+        detalhe-imovel.asp. O backend persiste os campos extras/fotos e publica
+        imovel.enriquecido. Ver ADR-0010.
+      operationId: ingerirDetalheImovel
+      security:
+        - internalToken: []
+      parameters:
+        - name: codigo
+          in: path
+          required: true
+          description: N° do imóvel (chave natural).
+          schema: { type: string, example: '1444408501866' }
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DetalheImovel'
+      responses:
+        '202':
+          description: Detalhe aceito para processamento assíncrono
+        '400':
+          $ref: '#/components/responses/ProblemaValidacao'
+        '401':
+          description: Token interno ausente ou inválido
+        '404':
+          description: Imóvel (codigo) ainda não ingerido pelo CSV
+        '409':
+          description: Detalhe duplicado (mesma Idempotency-Key já processada)
+
+components:
+  securitySchemes:
+    internalToken:
+      type: apiKey
+      in: header
+      name: X-Internal-Token
+      description: Token compartilhado entre coletor e backend (rede interna).
+
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Identifica o lote para evitar processamento duplicado (retry seguro).
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    LoteImoveis:
+      type: object
+      required: [fonte, uf, geradoEm, imoveis]
+      properties:
+        fonte:
+          type: string
+          example: caixa
+          description: Origem dos dados.
+        uf:
+          type: string
+          minLength: 2
+          maxLength: 2
+          example: SP
+        geradoEm:
+          type: string
+          format: date
+          description: "Data de geração informada no CSV da Caixa."
+          example: '2026-07-15'
+        imoveis:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ImovelColetado'
+
+    ImovelColetado:
+      type: object
+      required: [codigo, uf, cidade, modalidade, link]
+      properties:
+        codigo:
+          type: string
+          description: N° do imóvel (chave natural, deduplicação/idempotência).
+          example: '1444408501866'
+        uf: { type: string, example: SP }
+        cidade: { type: string, example: ADAMANTINA }
+        bairro: { type: string, example: VILA JOAQUINA }
+        endereco: { type: string, example: 'ALAMEDA PADRE ANCHIETA, N. 1159, LT 05 QD 16' }
+        preco:
+          type: number
+          format: double
+          description: Valor mínimo/preço (já convertido do formato BR).
+          example: 501000.00
+        valorAvaliacao:
+          type: number
+          format: double
+          example: 501000.00
+        descontoPct:
+          type: number
+          format: double
+          example: 0.0
+        financiamento:
+          type: boolean
+          example: false
+        descricao:
+          type: string
+          example: 'Casa, 0.00 de área total, 171.43 de área privativa, 384.00 de área do terreno.'
+        modalidade:
+          type: string
+          example: 'Leilão SFI - Edital único'
+        link:
+          type: string
+          format: uri
+          example: 'https://venda-imoveis.caixa.gov.br/sistema/detalhe-imovel.asp?hdnimovel=1444408501866'
+
+    DetalheImovel:
+      type: object
+      description: Dados extras raspados da página de detalhe (ver ADR-0010). Campos opcionais — o parser tolera ausências.
+      required: [codigo, fonte, coletadoEm]
+      properties:
+        codigo: { type: string, example: '1444408501866' }
+        fonte: { type: string, example: caixa-detalhe }
+        coletadoEm:
+          type: string
+          format: date-time
+          description: Quando o detalhe foi coletado (UTC).
+        valorPrimeiroLeilao:
+          type: number
+          format: double
+          example: 501000.00
+        valorSegundoLeilao:
+          type: number
+          format: double
+          example: 300600.00
+        dataPrimeiroLeilao:
+          type: string
+          format: date-time
+          example: '2026-08-04T13:00:00Z'
+        dataSegundoLeilao:
+          type: string
+          format: date-time
+          example: '2026-08-10T13:00:00Z'
+        leiloeiro: { type: string, example: 'AYRTON DE SOUZA PORTO FILHO' }
+        edital: { type: string, example: '0035/0226 - CPA/RE' }
+        numeroItem: { type: string, example: '465' }
+        matricula: { type: string, example: '14601' }
+        comarca: { type: string, example: 'ADAMANTINA-SP' }
+        oficio: { type: string, example: '01' }
+        inscricaoImobiliaria: { type: string, example: '770900' }
+        cep: { type: string, example: '17800-000' }
+        enderecoCompleto:
+          type: string
+          example: 'ALAMEDA PADRE ANCHIETA, N. 1159 LT 05 QD 16, VILA JOAQUINA - CEP: 17800-000, ADAMANTINA - SP'
+        aceitaFgts: { type: boolean, example: true }
+        aceitaFinanciamento: { type: boolean, example: false }
+        despesasCondominioComprador: { type: boolean, example: true }
+        despesasTributosComprador: { type: boolean, example: true }
+        situacaoOcupacao:
+          type: string
+          description: 'Ex.: desocupado, ocupado (quando informado).'
+          example: desocupado
+        descricaoCompleta: { type: string }
+        editalUrl: { type: string, format: uri }
+        matriculaUrl: { type: string, format: uri }
+        fotos:
+          type: array
+          description: URLs (ou caminhos no object storage) das fotos, em ordem.
+          items: { type: string, format: uri }
+
+    ResultadoIngestao:
+      type: object
+      properties:
+        loteId:
+          type: string
+          format: uuid
+        recebidos: { type: integer, example: 1200 }
+        aceitos: { type: integer, example: 1187 }
+        rejeitados: { type: integer, example: 13 }
+        publicados:
+          type: integer
+          description: Quantidade de eventos publicados no RabbitMQ.
+          example: 1187
+
+    # Erros no padrão Problem Details (RFC 7807)
+    Problem:
+      type: object
+      properties:
+        type: { type: string, example: 'https://buscabusca/errors/validacao' }
+        title: { type: string, example: 'Requisição inválida' }
+        status: { type: integer, example: 400 }
+        detail: { type: string, example: 'Campo "uf" é obrigatório.' }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              campo: { type: string }
+              mensagem: { type: string }
+
+  responses:
+    ProblemaValidacao:
+      description: Erro de validação
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
