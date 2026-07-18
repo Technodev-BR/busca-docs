@@ -11,7 +11,7 @@ busca-busca/
   collector/          # Python
   frontend/           # Angular
   libs/               # contratos/OpenAPI compartilhados (opcional)
-  deploy/helm/        # Helm charts dos serviços (templates)
+  deploy/k8s/         # manifests Kustomize dos serviços proprios (base/)
   .github/workflows/  # pipelines GitHub Actions (CI)
   docker-compose.yml  # ambiente de desenvolvimento
   docs/               # (futuro) esta documentação pode migrar para cá
@@ -27,8 +27,8 @@ busca-busca/
 busca-busca-gitops/
   apps/                        # Argo CD Applications (app-of-apps)
   environments/
-    dev/    staging/    prod/  # values/overlays por ambiente (Helm ou Kustomize)
-  infra/                       # ingress, cert-manager, observabilidade, etc.
+    dev/    staging/    prod/  # overlays Kustomize (apps proprias) por ambiente
+  infra/                       # charts Helm de terceiros: Traefik, cert-manager, observabilidade, etc.
 ```
 
 - O CI **nunca faz `kubectl apply`**; só **atualiza a tag da imagem** aqui (commit/PR). O Argo CD

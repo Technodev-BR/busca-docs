@@ -36,7 +36,7 @@ Cada tela é uma *feature* standalone com sua rota. **MVP** marcado; o resto é 
 | **Home / destaques** | `/` | Maiores **descontos reais**, novidades e **quedas de preço** recentes; atalhos de busca. | Pós-MVP |
 | **Busca / Lista** | `/imoveis` | Filtros (UF, cidade, tipo, modalidade, faixa de preço, **desconto real**, ocupação), ordenação, paginação, toggle **"incluir encerrados"**. Card com foto, preço, desconto real e selo de status. | **MVP** |
 | **Mapa** | `/mapa` | Leaflet com busca por **região/raio** (PostGIS), *clusters* e popup-resumo; alterna com a lista. | **MVP** |
-| **Detalhe do imóvel** | `/imoveis/:id` | Galeria de fotos; **1ª/2ª praça** com **cronômetro (contagem regressiva)** para cada leilão; **banner de aviso se ocupado**; **mini-mapa** com a localização (Leaflet/PostGIS); **análise de custo** (custo total + desconto real); **riscos** (ocupação/dívidas) e **score**; **painel de análise jurídica/IA** (nua-propriedade, fração, ônus — ver abaixo); links de **edital/matrícula (PDF)**; **gráfico de histórico de preço**; selo **Vendido/Encerrado**; botão **favoritar**. | **MVP** (cronômetro/mapa/aviso) · IA pós-MVP |
+| **Detalhe do imóvel** | `/imoveis/:id` | Galeria de fotos; **1ª/2ª praça** com **cronômetro (contagem regressiva)** para cada leilão; **banner de aviso se ocupado**; **mini-mapa** com a localização (Leaflet/PostGIS); **análise de custo** (custo total + desconto real); **riscos** (ocupação/dívidas) e **score**; **painel de análise jurídica/IA** (nua-propriedade, fração, ônus — ver abaixo); links de **edital/matrícula (PDF)**; **gráfico de histórico de preço**; selo **Vendido/Encerrado**. **Botão favoritar** aparece só **logado** (pós-MVP). | **MVP**: galeria, praças/cronômetro, mini-mapa, aviso de ocupação, custo/desconto, riscos e **score** · **Pós-MVP**: favoritar (auth) e painel de IA jurídica |
 | **Favoritos** | `/favoritos` | Imóveis favoritados com selo **Vendido** quando aplicável; remover. | Pós-MVP (auth) |
 | **Alertas** | `/alertas` | Criar/gerir alertas (filtro salvo + canal), ativar/desativar. | Pós-MVP (auth) |
 | **Login (social)** | `/login` | Botões **Entrar com Google** / **Entrar com GitHub** (redireciona para `/oauth2/authorization/{provedor}`); sessão via cookie HttpOnly. Ver [ADR-0013](../arquitetura/decisoes/0013-autenticacao-social-oidc.md). | Pós-MVP (auth) |
@@ -45,7 +45,7 @@ Cada tela é uma *feature* standalone com sua rota. **MVP** marcado; o resto é 
 **Padrões de UX (todas as telas):** estados de **loading / vazio / erro** explícitos, layout
 **responsivo** (mobile-first), acessibilidade (ARIA/contraste) e **skeletons** no carregamento.
 Consome os casos de uso do [Backend](backend-java.md); tipos gerados do
-[OpenAPI](../contratos/openapi-ingestao.yaml).
+[OpenAPI da API pública](../contratos/openapi-api.yaml) (`openapi-ingestao.yaml` é **interno**, não usado pelo front).
 
 ## Libs
 - **Angular CLI** + `@angular/router`, `HttpClient`, RxJS + **Signals**.

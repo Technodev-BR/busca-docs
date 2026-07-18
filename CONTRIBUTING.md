@@ -34,9 +34,9 @@ Toda decisão relevante (escolha de tecnologia, padrão, trade-off) vira um ADR 
 
 ## Diagramas
 
-- Fonte em `docs/assets/diagramas/*.drawio` (formato [draw.io](https://draw.io)), gerados por
+- Fonte em `docs/public/diagramas/*.drawio` (formato [draw.io](https://draw.io)), gerados por
   scripts em `tools/`.
-- Ao alterar a arquitetura, **atualize o diagrama** (rode `python tools/gerar_drawio.py`) no mesmo PR.
+- Ao alterar a arquitetura, **atualize o diagrama** (rode `node tools/gerar_drawio.mjs` ou `npm run diagrams`) no mesmo PR.
 
 ## Convenções de página
 

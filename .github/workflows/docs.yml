@@ -29,20 +29,20 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Renderiza os diagramas .drawio (fonte versionada) em SVG.
-      - name: Exportar diagramas (.drawio -> SVG)
+      # Renderiza os .drawio (fonte, em docs/public/diagramas) em SVG.
+      - name: Renderizar diagramas (.drawio -> SVG)
         uses: rlespinasse/drawio-export-action@v2
         with:
-          path: docs/assets/diagramas
+          path: docs/public/diagramas
           format: svg
           output: export
 
-      # Reune os SVGs gerados em docs/public/diagramas (servido como /diagramas/*).
-      - name: Coletar SVGs em docs/public/diagramas
+      # Move os SVGs renderizados para docs/public/diagramas (servidos como /diagramas/*).
+      - name: Mover SVGs para docs/public/diagramas
         run: |
-          mkdir -p docs/public/diagramas
-          find docs/assets/diagramas -name '*.svg' -exec cp {} docs/public/diagramas/ \;
-          echo "SVGs disponiveis:" && ls -la docs/public/diagramas || true
+          cp docs/public/diagramas/export/*.svg docs/public/diagramas/ || true
+          rm -rf docs/public/diagramas/export
+          echo "Arquivos disponiveis:" && ls -la docs/public/diagramas || true
 
       - name: Setup Node
         uses: actions/setup-node@v4

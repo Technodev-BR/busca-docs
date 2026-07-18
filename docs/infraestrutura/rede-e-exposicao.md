@@ -1,12 +1,12 @@
 # Rede e exposição (Cloudflare, Traefik e VPN)
 
 Como o tráfego entra no cluster **k3s** da VPS Hostinger, como resolvemos o domínio
-**`technodev.com.br`** na **Cloudflare** e o que fica **público** vs. **interno (VPN)**.
+**`technodevbr.com`** na **Cloudflare** e o que fica **público** vs. **interno (VPN)**.
 Decisão em [ADR-0006](../arquitetura/decisoes/0006-infra-k3s-vps-cloudflare.md).
 
 ## Princípio de exposição
 - **Público** (via Cloudflare → internet): **apenas a ferramenta de gerenciamento** do cluster,
-  ex.: `portainer.technodev.com.br`, sempre com **autenticação** (e, de preferência, Cloudflare Access).
+  ex.: `portainer.technodevbr.com`, sempre com **autenticação** (e, de preferência, Cloudflare Access).
 - **Interno** (somente pela **VPN**): **todo o resto** — app/frontend, API, Argo CD, Grafana,
   RabbitMQ management, etc.
 
@@ -16,17 +16,17 @@ Usuário ──> VPN ───────────────────�
 ```
 
 ## DNS na Cloudflare
-Domínio `technodev.com.br` gerenciado na Cloudflare. Subdomínios:
+Domínio `technodevbr.com` gerenciado na Cloudflare. Subdomínios:
 
 | Host | Destino | Exposição | Proxy Cloudflare |
 | --- | --- | --- | --- |
-| `portainer.technodev.com.br` | UI de gerenciamento (Portainer) | Público | Proxied (laranja) |
-| `busca-busca.technodev.com.br` | Frontend Angular | Interno (VPN) | DNS only (cinza) |
-| `api.technodev.com.br` | API Java | Interno (VPN) | DNS only |
-| `argo.technodev.com.br` | Argo CD | Interno (VPN) | DNS only |
-| `traefik.technodev.com.br` | Dashboard do Traefik | Interno (VPN) | DNS only |
-| `grafana.technodev.com.br` | Grafana | Interno (VPN) | DNS only |
-| `rabbit.technodev.com.br` | RabbitMQ mgmt | Interno (VPN) | DNS only |
+| `portainer.technodevbr.com` | UI de gerenciamento (Portainer) | Público | Proxied (laranja) |
+| `busca-busca.technodevbr.com` | Frontend Angular | Interno (VPN) | DNS only (cinza) |
+| `api.technodevbr.com` | API Java | Interno (VPN) | DNS only |
+| `argo.technodevbr.com` | Argo CD | Interno (VPN) | DNS only |
+| `traefik.technodevbr.com` | Dashboard do Traefik | Interno (VPN) | DNS only |
+| `grafana.technodevbr.com` | Grafana | Interno (VPN) | DNS only |
+| `rabbit.technodevbr.com` | RabbitMQ mgmt | Interno (VPN) | DNS only |
 
 > Hosts internos podem apontar para o **IP privado da VPN** (ex.: faixa Tailscale/WireGuard) em
 > vez do IP público, garantindo que só resolvem/funcionam dentro da VPN.
@@ -48,7 +48,7 @@ metadata:
     cert-manager.io/cluster-issuer: letsencrypt-cloudflare
 spec:
   rules:
-    - host: busca-busca.technodev.com.br
+    - host: busca-busca.technodevbr.com
       http:
         paths:
           - path: /
@@ -59,7 +59,7 @@ spec:
                 port:
                   number: 80
   tls:
-    - hosts: [busca-busca.technodev.com.br]
+    - hosts: [busca-busca.technodevbr.com]
       secretName: busca-busca-tls
 ```
 
@@ -75,7 +75,7 @@ metadata:
   name: letsencrypt-cloudflare
 spec:
   acme:
-    email: admin@technodev.com.br
+    email: admin@technodevbr.com
     server: https://acme-v02.api.letsencrypt.org/directory
     privateKeySecretRef:
       name: letsencrypt-cloudflare-key
@@ -87,7 +87,7 @@ spec:
               key: api-token
 ```
 
-> O **token da Cloudflare** (escopo `Zone.DNS:Edit` na zona `technodev.com.br`) entra como
+> O **token da Cloudflare** (escopo `Zone.DNS:Edit` na zona `technodevbr.com`) entra como
 > `Secret`, gerenciado por Sealed Secrets/External Secrets — **nunca** em claro no Git.
 > Alternativa: **ACME embutido do Traefik** com provider Cloudflare (dispensa o cert-manager).
 

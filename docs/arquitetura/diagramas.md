@@ -9,7 +9,9 @@ Os diagramas estão em formato [draw.io](https://draw.io) (`.drawio`) e são **g
 
 ## Como regenerar
 ```bash
-python tools/gerar_drawio.py       # gera todos os diagramas de uma vez
+node tools/gerar_drawio.mjs        # gera todos os diagramas de uma vez
+# ou, via npm script:
+npm run diagrams
 ```
 
 > No **portal de docs** (VitePress), os diagramas abaixo aparecem renderizados em **SVG**
@@ -21,7 +23,7 @@ de **Entrega (GitOps)**.
 
 ![Arquitetura geral do sistema](/diagramas/arquitetura.svg)
 
-- Arquivo: [`assets/diagramas/arquitetura.drawio`](../assets/diagramas/arquitetura.drawio)
+- Arquivo (fonte): <a href="/diagramas/arquitetura.drawio" target="_blank" rel="noreferrer" download>arquitetura.drawio</a>
 
 ## Fluxo de entrega (CI + GitOps + Kubernetes)
 Padrão de **dois repositórios** (app + config), **Argo CD** sincronizando ambientes e o loop de
@@ -29,7 +31,7 @@ observabilidade/IA.
 
 ![Fluxo de entrega: CI, GitOps e Kubernetes](/diagramas/fluxo-gitops.svg)
 
-- Arquivo: [`assets/diagramas/fluxo-gitops.drawio`](../assets/diagramas/fluxo-gitops.drawio)
+- Arquivo (fonte): <a href="/diagramas/fluxo-gitops.drawio" target="_blank" rel="noreferrer" download>fluxo-gitops.drawio</a>
 
 ## Esquema do banco de dados
 Modelo relacional (entidades e relacionamentos). Ver também
@@ -37,7 +39,7 @@ Modelo relacional (entidades e relacionamentos). Ver também
 
 ![Esquema do banco de dados](/diagramas/banco-dados.svg)
 
-- Arquivo: [`assets/diagramas/banco-dados.drawio`](../assets/diagramas/banco-dados.drawio)
+- Arquivo (fonte): <a href="/diagramas/banco-dados.drawio" target="_blank" rel="noreferrer" download>banco-dados.drawio</a>
 
 ## Sequência do fluxo ponta a ponta
 Da coleta do CSV à consulta no front, passando por ingestão, mensageria, enriquecimento (detalhe) e
@@ -45,7 +47,7 @@ recálculo de custo/score. Ver [Visão geral](visao-geral.md) e [Regras de negó
 
 ![Sequência do fluxo ponta a ponta](/diagramas/sequencia-fluxo.svg)
 
-- Arquivo: [`assets/diagramas/sequencia-fluxo.drawio`](../assets/diagramas/sequencia-fluxo.drawio)
+- Arquivo (fonte): <a href="/diagramas/sequencia-fluxo.drawio" target="_blank" rel="noreferrer" download>sequencia-fluxo.drawio</a>
 
 ## Sequência do login (OIDC + refresh)
 Login social (Google/GitHub) com Authorization Code + PKCE, **rotação de refresh token** e logout.
@@ -53,7 +55,8 @@ Ver [ADR-0013](decisoes/0013-autenticacao-social-oidc.md) e [API Pública](../co
 
 ![Sequência do login social (OIDC + refresh)](/diagramas/sequencia-login.svg)
 
-- Arquivo: [`assets/diagramas/sequencia-login.drawio`](../assets/diagramas/sequencia-login.drawio)
+- Arquivo (fonte): <a href="/diagramas/sequencia-login.drawio" target="_blank" rel="noreferrer" download>sequencia-login.drawio</a>
 
-> **Exportar imagem:** no draw.io, *File → Export as → PNG/SVG* para `docs/assets/diagramas/` e
-> referencie com `![](...)` se quiser embutir a imagem no markdown.
+> **Fonte única:** os `.drawio` ficam em `docs/public/diagramas/` (gerados por
+> `node tools/gerar_drawio.mjs`). No deploy, o CI renderiza cada `.drawio` em **SVG**
+> nessa mesma pasta — não é preciso exportar imagens manualmente.

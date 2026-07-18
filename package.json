@@ -4,10 +4,16 @@
   "private": true,
   "description": "Portal de documentacao do Busca-Busca (VitePress) - paliativo em GitHub Pages ate o deploy definitivo via k3s/GitOps (ADR-0011).",
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
+    "predocs:dev": "node tools/ensure-diagram-svgs.mjs",
     "docs:dev": "vitepress dev docs",
+    "predocs:build": "node tools/ensure-diagram-svgs.mjs",
     "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "docs:preview": "vitepress preview docs",
+    "diagrams": "node tools/gerar_drawio.mjs"
   },
   "devDependencies": {
     "vitepress": "^1.6.3"

@@ -1,6 +1,6 @@
 # ADR-0011 — Portal de documentação gerado (VitePress)
 
-- **Status:** Proposto
+- **Status:** Parcialmente implementado (paliativo em GitHub Pages)
 - **Data:** 2026-07-18
 
 ## Contexto
@@ -22,10 +22,22 @@ Quando houver necessidade, publicar um **portal de docs dedicado** gerado a part
 - **Portal dedicado, não embutido no app Angular**: evita acoplar o ciclo de vida das docs ao
   produto e permite **controle de acesso próprio**.
 - **Publicação**: build no GitHub Actions → imagem Nginx → **GitOps/Argo CD** no **k3s atrás do
-  Traefik** em `docs.technodev.com.br`, **interno via VPN** por padrão (coerente com
+  Traefik** em `docs.technodevbr.com`, **interno via VPN** por padrão (coerente com
   [ADR-0006](0006-infra-k3s-vps-cloudflare.md)).
-- **Diagramas**: o gerador (`tools/gerar_drawio.py`) passa a **exportar `.drawio` → SVG** no build,
+- **Diagramas**: o gerador (`tools/gerar_drawio.mjs`, Node) passa a **exportar `.drawio` → SVG** no build,
   mantendo o `.drawio` como fonte.
+
+## Situação atual (implementado — paliativo)
+O portal **já foi implementado com VitePress** e é publicado no **GitHub Pages** como solução
+**paliativa**, enquanto o cluster k3s não está pronto:
+
+- **Build/deploy:** GitHub Actions (`.github/workflows/docs.yml`) no push da `main`.
+- **Domínio:** `docs.technodevbr.com` (arquivo `docs/public/CNAME`), com `base: '/'`.
+- **Diagramas:** `.drawio` renderizados em SVG no CI; placeholders locais automáticos.
+- **Operação e how-to:** ver [Portal de documentação](../../infraestrutura/portal-docs.md).
+
+Quando o k3s/GitOps entrar, o **deploy migra** para Nginx + Argo CD atrás do Traefik (mesmo
+domínio, interno via VPN), sem mudar a fonte (`docs/`) nem o gerador (VitePress).
 
 ## Gatilho (quando implementar)
 Só adotar quando houver **necessidade real** — evitar over-engineering:

@@ -1,6 +1,10 @@
 # Legal & LGPD
 
-Aspectos legais e de privacidade da coleta e do uso dos dados.
+Aspectos legais e de privacidade da coleta e do uso dos dados. Este documento foca em **dados de
+terceiros** (edital/matrícula) e na coleta. Para dados **de usuários** do produto, ver a
+[Política de Privacidade](politica-de-privacidade.md); para as condições de uso, os
+[Termos de Uso](termos-de-uso.md); e para limites/kill-switch da coleta, a
+[Política de coleta](politica-de-coleta.md).
 
 ## Fonte oficial (preferência)
 - Usar a **lista oficial em CSV** publicada pela Caixa é o canal **legítimo e mais estável**.
@@ -23,12 +27,14 @@ Aspectos legais e de privacidade da coleta e do uso dos dados.
 
 ## Termos de uso
 - Revisar os **termos** no rodapé do portal e as **"Regras da venda online"**
-  (`.../editais/regras-VOL/comocomprar.pdf`) antes de publicar o serviço.
+  (`.../editais/regras-VOL/comocomprar.pdf`) antes de publicar o serviço — o **registro** dessa
+  revisão fica na [Política de coleta](politica-de-coleta.md#1-revisão-de-termos-registro-obrigatório).
+- Termos do **produto** para o usuário final: ver [Termos de Uso](termos-de-uso.md).
 
 ## Scraping educado (página de detalhe)
 Usamos a página de detalhe para **enriquecer todos os imóveis** (ver
-[ADR-0010](../arquitetura/decisoes/0010-enriquecimento-detalhe.md)) — como o volume é alto, o
-cuidado com o ritmo é **essencial**:
+[ADR-0010](../arquitetura/decisoes/0010-enriquecimento-detalhe.md)). Limites numéricos, kill-switch
+e checklist pré-produção estão na [Política de coleta](politica-de-coleta.md). Princípios:
 
 - *User-agent* identificável, **poucos acessos por minuto** (rate limiter global), **cache** local
   para não repetir requisições, **backoff** em erros, e **nada de burlar proteções**.

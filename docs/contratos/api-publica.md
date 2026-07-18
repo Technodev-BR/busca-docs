@@ -2,7 +2,7 @@
 
 API **pública** consumida pelo **frontend (Angular)**. Expõe busca/filtro, detalhe com análise de
 custo, histórico e engajamento (favoritos/alertas). Exposta via Traefik/Cloudflare em
-`api.technodev.com.br`. Contrato formal (fonte da verdade — API-first):
+`api.technodevbr.com`. Contrato formal (fonte da verdade — API-first):
 [`openapi-api.yaml`](openapi-api.yaml).
 
 > Complementa a [API de Ingestão](api-ingestao.md) (interna, coletor→backend). Esta é a de leitura

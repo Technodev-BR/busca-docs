@@ -20,10 +20,15 @@ técnica relevante: o **contexto**, a **decisão** e as **consequências**.
 | [0008](0008-traefik-self-managed.md) | Traefik gerenciado por nós (k3s sem Traefik embutido) | Aceito |
 | [0009](0009-gerenciamento-portainer.md) | Portainer como ferramenta de gerenciamento do cluster | Aceito |
 | [0010](0010-enriquecimento-detalhe.md) | Enriquecimento por página de detalhe (Caixa) | Aceito |
-| [0011](0011-portal-docs-vitepress.md) | Portal de documentação gerado (VitePress) | Proposto |
+| [0011](0011-portal-docs-vitepress.md) | Portal de documentação gerado (VitePress) | Parcial (paliativo) |
 | [0012](0012-retencao-dados-historico.md) | Retenção: histórico curado + coleta bruta comprimida | Aceito |
 | [0013](0013-autenticacao-social-oidc.md) | Autenticação social (Google/GitHub) com OIDC e BFF | Aceito |
-| [0014](0014-analise-juridica-ia.md) | Análise jurídica de investimento assistida por IA | Proposto |
+| [0014](0014-analise-juridica-ia.md) | Análise jurídica de investimento assistida por IA | Aceito (Fase 9) |
+| [0015](0015-kustomize-apps-helm-terceiros.md) | Kustomize para serviços próprios, Helm para terceiros | Aceito |
+| [0016](0016-geocoding.md) | Geocoding (Nominatim self-hosted + cache/fallback) | Aceito |
+| [0017](0017-object-storage.md) | Object storage para mídias (MinIO/S3 + CDN) | Aceito |
+| [0018](0018-notificacoes.md) | Notificações event-driven (e-mail no MVP) | Aceito |
+| [0019](0019-rate-limiting-quotas.md) | Rate limiting, quotas e WAF (camadas) | Aceito |
 
 ## Template
 

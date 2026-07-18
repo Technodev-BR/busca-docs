@@ -19,7 +19,9 @@ Ambos: header `X-Internal-Token`, `Idempotency-Key: <uuid>`, resposta `202 Accep
 `POST /internal/ingest/imoveis`
 
 - **Auth**: header `X-Internal-Token` (segredo compartilhado na rede interna).
-- **Idempotência**: header `Idempotency-Key: <uuid>` por lote — retry não duplica.
+- **Idempotência**: header `Idempotency-Key: <uuid>` por lote. **Replay da mesma key** (retry do
+  coletor) → **mesmo `202`** com o **mesmo `loteId`** (nunca `409`). Conteúdo com `codigo` repetido
+  é resolvido por **upsert** no processamento (não gera duplicata).
 - **Resposta**: `202 Accepted` (processamento assíncrono via RabbitMQ).
 
 ## Exemplo de requisição
@@ -64,8 +66,9 @@ Content-Type: application/json
 
 ## O que o backend faz ao receber (lote CSV)
 1. **Valida** o token e o payload (Bean Validation).
-2. Verifica a **Idempotency-Key** (se já processada → `409`).
-3. Grava o **`coleta_bruta`** (lote bruto, reprocessável).
+2. Verifica a **Idempotency-Key**: se **já processada**, retorna **`202` com o mesmo `loteId`**
+   (resposta memorizada) — retry é seguro e não reprocessa.
+3. Grava o **`coleta_bruta`** (lote bruto, reprocessável) — o backend é o **único** a escrever no banco.
 4. **Publica** um evento por imóvel no RabbitMQ (ver [Eventos RabbitMQ](eventos-rabbitmq.md)),
    incluindo `imovel.enriquecer` para disparar a coleta de detalhe.
 5. Responde `202` com o resumo.

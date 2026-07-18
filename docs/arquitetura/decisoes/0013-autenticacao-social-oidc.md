@@ -47,7 +47,7 @@ Client) e adota o padrão **BFF (Backend-for-Frontend)**.
 - **+** Cookie `HttpOnly` protege o token contra XSS (melhor que JWT em `localStorage`).
 - **−** Dependência de IdPs externos (indisponibilidade do Google/GitHub afeta login).
 - **−** Fluxo com cookie exige **CSRF** e cuidado com **CORS**/domínios (front e API no mesmo site
-  ajuda: `technodev.com.br` / `api.technodev.com.br`).
+  ajuda: `technodevbr.com` / `api.technodevbr.com`).
 - **−** Precisamos cadastrar apps OAuth em Google e GitHub (redirect URIs por ambiente).
 
 ## Alternativas consideradas

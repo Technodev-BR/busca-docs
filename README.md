@@ -7,9 +7,11 @@ o filtro e a pré-análise de imóveis em leilão** (começando pela Caixa), com
 > **Abordagem docs-first:** primeiro documentamos objetivo, regras de negócio, arquitetura e
 > decisões; o código nasce a partir daqui. Esta é a **fonte única da verdade** do projeto.
 
-> **Só markdown, sem ferramenta de build.** A documentação é **markdown puro**, para ler direto no
-> GitHub/editor e ser facilmente compreendida por pessoas e por agentes de IA. Não há site a
-> gerar. (Decisão registrada em [ADR-0004](docs/arquitetura/decisoes/0004-documentacao-markdown-puro.md).)
+> **Markdown como fonte única.** A documentação é **markdown puro**, para ler direto no
+> GitHub/editor e ser facilmente compreendida por pessoas e por agentes de IA
+> (ver [ADR-0004](docs/arquitetura/decisoes/0004-documentacao-markdown-puro.md)). Opcionalmente,
+> há um **portal navegável** gerado a partir desses mesmos `.md` — veja
+> [Portal de documentação](#portal-de-documentação-vitepress) abaixo.
 
 ## Índice
 
@@ -50,19 +52,39 @@ docs/
   observabilidade/             # métricas/logs/traces, SLO, AIOps (MCP), runbooks
   qualidade/                   # testes, CI/CD, segurança
   legal/                       # LGPD, termos de uso, conformidade
-  assets/diagramas/            # arquivos .drawio (diagrams.net)
+  public/diagramas/            # .drawio (fonte, diagrams.net) + SVG servidos pelo portal
 tools/                         # geradores dos diagramas (Python)
 ```
 
 ## Diagramas
 
-Os diagramas estão em [`docs/assets/diagramas/`](docs/assets/diagramas/) no formato
+Os diagramas estão em [`docs/public/diagramas/`](docs/public/diagramas/) no formato
 [draw.io](https://draw.io) (`.drawio`). Abra em [app.diagrams.net](https://app.diagrams.net)
 (File → Open) ou pela extensão *Draw.io Integration* no VS Code/Cursor. São gerados por script:
 
 ```bash
-python tools/gerar_drawio.py     # arquitetura, fluxo GitOps e esquema do banco
+node tools/gerar_drawio.mjs      # arquitetura, fluxo GitOps e esquema do banco
+# ou: npm run diagrams
 ```
+
+## Portal de documentação (VitePress)
+
+Além de ler os `.md` direto no GitHub/editor, há um **portal navegável** (menu lateral, busca
+full-text) gerado com [VitePress](https://vitepress.dev) a partir dos mesmos arquivos de `docs/`.
+É opcional — hospedado no **GitHub Pages** como paliativo até o deploy definitivo via k3s/GitOps
+(ver [ADR-0011](docs/arquitetura/decisoes/0011-portal-docs-vitepress.md)).
+
+Pré-requisito: **Node.js 20+**.
+
+```bash
+npm install          # instala as dependências (uma vez)
+npm run docs:dev     # sobe o portal em modo dev -> http://localhost:5173
+npm run docs:build   # gera o site estático em docs/.vitepress/dist
+npm run docs:preview # pré-visualiza o build de produção
+```
+
+> Os diagramas aparecem como **placeholders** em ambiente local; no build de publicação (CI) os
+> arquivos `.drawio` são renderizados em SVG automaticamente.
 
 ## Contribuindo
 

@@ -1,5 +1,5 @@
-﻿<svg xmlns="http://www.w3.org/2000/svg" width="760" height="200" viewBox="0 0 760 200">
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="200" viewBox="0 0 760 200">
   <rect width="760" height="200" rx="10" fill="#f3f6fb" stroke="#cbd5e1"/>
-  <text x="380" y="86" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="600" fill="#334155" text-anchor="middle">Fluxo de entrega (CI + GitOps)</text>
-  <text x="380" y="122" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#64748b" text-anchor="middle">Diagrama renderizado no build (CI) a partir do arquivo .drawio</text>
+  <text x="380" y="92" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="600" fill="#334155" text-anchor="middle">fluxo gitops</text>
+  <text x="380" y="124" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#64748b" text-anchor="middle">Diagrama renderizado no build (CI) a partir do .drawio</text>
 </svg>

@@ -11,7 +11,7 @@ organizar os repositórios e como o deploy chega ao cluster.
 Adotar o **padrão GitOps de dois repositórios**:
 
 1. **`busca-busca` (monorepo de aplicação)** — código de `backend/`, `collector/`, `frontend/`,
-   `deploy/helm/` e `.github/workflows/`.
+   `deploy/k8s/` (Kustomize — ver [ADR-0015](0015-kustomize-apps-helm-terceiros.md)) e `.github/workflows/`.
 2. **`busca-busca-gitops` (config)** — **fonte da verdade do que roda no cluster**, observado
    pelo **Argo CD** (`apps/`, `environments/{dev,staging,prod}`, `infra/`).
 

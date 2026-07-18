@@ -1,5 +1,23 @@
 # Stack tecnológica
 
+<div class="logo-grid">
+  <div class="logo-card"><img src="/logos/java.svg" alt="Java" /><span>Java 21</span></div>
+  <div class="logo-card"><img src="/logos/spring.svg" alt="Spring Boot" /><span>Spring Boot</span></div>
+  <div class="logo-card"><img src="/logos/python.svg" alt="Python" /><span>Python 3.12</span></div>
+  <div class="logo-card"><img src="/logos/angular.svg" alt="Angular" /><span>Angular</span></div>
+  <div class="logo-card"><img src="/logos/typescript.svg" alt="TypeScript" /><span>TypeScript</span></div>
+  <div class="logo-card"><img src="/logos/sass.svg" alt="SASS" /><span>SASS/SCSS</span></div>
+  <div class="logo-card"><img src="/logos/postgresql.svg" alt="PostgreSQL" /><span>PostgreSQL + PostGIS</span></div>
+  <div class="logo-card"><img src="/logos/redis.svg" alt="Redis" /><span>Redis</span></div>
+  <div class="logo-card"><img src="/logos/rabbitmq.svg" alt="RabbitMQ" /><span>RabbitMQ</span></div>
+  <div class="logo-card"><img src="/logos/docker.svg" alt="Docker" /><span>Docker</span></div>
+  <div class="logo-card"><img src="/logos/kubernetes.svg" alt="Kubernetes" /><span>k3s (Kubernetes)</span></div>
+  <div class="logo-card"><img src="/logos/argocd.svg" alt="Argo CD" /><span>Argo CD</span></div>
+  <div class="logo-card"><img src="/logos/traefik.svg" alt="Traefik" /><span>Traefik</span></div>
+  <div class="logo-card"><img src="/logos/nginx.svg" alt="Nginx" /><span>Nginx</span></div>
+  <div class="logo-card"><img src="/logos/cloudflare.svg" alt="Cloudflare" /><span>Cloudflare</span></div>
+</div>
+
 | Camada | Tecnologia | Observações |
 |---|---|---|
 | Backend / API | **Java 21 + Spring Boot 3** | Arquitetura hexagonal (ports & adapters) |

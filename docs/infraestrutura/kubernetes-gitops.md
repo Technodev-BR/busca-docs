@@ -9,15 +9,21 @@ entrega contínua **declarativa** via **Argo CD**. Decisão em
 - **k3s** já instalado na VPS Hostinger (**single-node**).
 - **Traefik** como **ingress**, mas **subido por nós** (Helm, com nossos *values*, versionado no
   GitOps) — o Traefik **embutido do k3s fica desabilitado** (`--disable traefik`). Não usamos Ingress-NGINX.
-- **DNS/TLS/exposição**: ver [Rede e exposição](rede-e-exposicao.md) (Cloudflare + `technodev.com.br`).
+- **DNS/TLS/exposição**: ver [Rede e exposição](rede-e-exposicao.md) (Cloudflare + `technodevbr.com`).
 - **Gerenciamento** (ver pods etc.): ver [Gerenciamento do cluster](gerenciamento-cluster.md).
 - **Atenção (nó único):** sem alta disponibilidade — reboot/manutenção derruba os serviços.
   Fazer **backup** do volume do Postgres e dos manifests (GitOps já cobre a config).
 
-## Empacotamento
-- **Helm charts** (um por serviço) versionados em `deploy/helm/` no repo de aplicação.
-- *Values* por ambiente ficam no repo **GitOps** (`environments/{dev,staging,prod}`).
-- Kustomize é alternativa válida.
+## Empacotamento de manifests
+Estratégia (ver [ADR-0015](../arquitetura/decisoes/0015-kustomize-apps-helm-terceiros.md)):
+
+- **Serviços próprios** (backend, collector, frontend) → **Kustomize** (`base/` + `overlays/{dev,staging,prod}`).
+  Manifests são nossos, simples e explícitos; sem a indireção de templates de Helm.
+- **Componentes de terceiros** (Traefik, cert-manager, RabbitMQ, Redis/PostgreSQL operadores,
+  observabilidade, etc.) → **Helm** (charts oficiais da comunidade), com nossos *values* versionados.
+- **Base** dos manifests próprios em `deploy/k8s/` no repo de aplicação; **overlays por ambiente**
+  ficam no repo **GitOps** (`environments/{dev,staging,prod}`).
+- Argo CD suporta os dois nativamente (Application aponta para chart Helm ou diretório Kustomize).
 
 ## Argo CD
 - Sincroniza o estado desejado (repo GitOps) → cluster.

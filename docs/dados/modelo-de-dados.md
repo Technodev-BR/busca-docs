@@ -3,9 +3,8 @@
 Modelo relacional (PostgreSQL 16 + PostGIS), **normalizado (3FN)** e com **nomes em português**.
 O schema é versionado por **Flyway** no backend Java.
 
-> **Diagrama:** o esquema visual está em
-> [`assets/diagramas/banco-dados.drawio`](../assets/diagramas/banco-dados.drawio) — ver
-> [Diagramas](../arquitetura/diagramas.md) para como abrir.
+> **Diagrama:** veja o esquema visual em
+> [Diagramas → Esquema do banco de dados](../arquitetura/diagramas.md#esquema-do-banco-de-dados).
 
 ## Convenções e padrões
 - **Nomenclatura:** `snake_case`, tabelas e colunas em **português**, nomes **no singular**, sem
@@ -89,7 +88,18 @@ Núcleo (dados do CSV). Colunas: `id` (PK), `codigo` (N° do imóvel, **uq por f
 ### `analise_custo`
 **1:1** com `imovel` (`imovel_id` FK **uq**), recalculada quando o imóvel muda/é enriquecido:
 `itbi`, `custas`, `registro`, `dividas`, `reforma_estimada`, `custo_total`, `desconto_real_pct`,
-`score`, `status_confianca` (`status_enriquecimento`), `calculado_em`.
+`score` `smallint` (0–100), `confianca` `numeric(4,3)` (0–1), `versao_score` (ex.: `v0-heuristico`),
+`fatores` `jsonb` (array de `{nome, rotulo, contribuicao, direcao}` — explicabilidade, ver
+[score-v0-spec](../dominio/score-v0-spec.md)), `parametro_custo_versao` (versão dos parâmetros usados),
+`status_confianca` (`status_enriquecimento`), `calculado_em`.
+
+### `analise_juridica` (IA — ADR-0014, evolução)
+**1:1** com `imovel` (`imovel_id` FK **uq**). Resultado da [análise jurídica com IA](../dominio/analise-juridica-ia.md):
+`resumo` `text` (parecer em linguagem simples — RF-10), `flags` `jsonb` (array de
+`{tipo, presente, confianca, trecho_citado, origem}` — grounding), `nivel_risco`
+(`baixo|medio|alto`), `modelo` (ex.: `gpt-4o-mini`), `versao_prompt`, `fonte` (`edital|matricula`),
+`analisado_em`, `status` (`ok|parcial|falha`). **Não** substitui parecer jurídico humano
+(disclaimer obrigatório). Guarda os **trechos citados** que embasam cada flag (nunca "caixa-preta").
 
 ### `coleta_bruta`
 `id` (PK), `fonte` (`caixa` = CSV, `caixa-detalhe` = HTML), `uf`, `codigo`, `payload_bruto`
@@ -104,6 +114,25 @@ detalhe se o parser mudar).
 - **Retenção:** ~**90 dias** em banco; depois descartar ou arquivar frio (object storage). É o dado
   que mais **pesa** — ver [Backup & DR](../infraestrutura/backup-e-dr.md). Já `historico_preco` tem
   retenção **longa** (é pequeno e é parte do produto).
+
+## Parâmetros de custo (versionados)
+Alimentam o [motor de custos](../dominio/calculo-de-custos.md). São **versionados por vigência**:
+o `analise_custo` grava a `parametro_custo_versao` usada, para o cálculo ser **auditável e
+reprodutível**. Defaults e fontes em [Parâmetros de custo](parametros-custo.md).
+
+### `aliquota_itbi`
+Alíquota de ITBI (varia por município). `id` (PK), `municipio_id` (FK, **null** = default por UF),
+`uf` `char(2)` (usado no default por UF), `aliquota_pct` `numeric(6,2)`, `vigencia_inicio` `date`,
+`vigencia_fim` `date NULL`, `fonte` (URL/lei), `versao`. **uq** parcial por (`municipio_id`,
+`vigencia_inicio`) `WHERE excluido_em IS NULL`.
+
+### `parametro_custo`
+Demais parâmetros configuráveis (custas, registro, R$/m² de reforma). `id` (PK), `chave`
+(`custas_pct | registro_faixa | reforma_m2`), `escopo` (`nacional | uf | municipio`), `uf`
+`char(2) NULL`, `municipio_id` (FK **NULL**), `tipo_imovel_id` (FK **NULL**, p/ reforma por tipo),
+`valor` `numeric(14,2) NULL`, `percentual` `numeric(6,2) NULL`, `faixa_min`/`faixa_max`
+`numeric(14,2) NULL` (p/ registro por faixa), `vigencia_inicio` `date`, `vigencia_fim` `date NULL`,
+`fonte`, `versao`. Resolução: **município → UF → nacional** (mais específico vence).
 
 ## Usuários e engajamento
 ### `usuario`
@@ -123,6 +152,24 @@ Retenção: podar expirados/revogados.
 
 ### `alerta`
 `id` (PK), `usuario_id` (FK), `filtro` `jsonb`, `canal` (`canal_alerta`), `ativo` `boolean`.
+
+## Tabelas de suporte (infra)
+Sustentam decisões arquiteturais aceitas; não são entidades de negócio.
+
+### `geocode_cache` (ADR-0016)
+`id` (PK), `chave_hash` `char(64)` (**uq**, SHA-256 de `endereco_normalizado`+`cep`), `lat`, `lng`,
+`qualidade` (`exato|aproximado|centroide_bairro|centroide_cidade`), `provedor`, `resolvido_em`.
+Evita reconsultar o geocoder; TTL longo.
+
+### `outbox` (ADR-0018 / padrão Transactional Outbox)
+`id` (PK), `agregado` (ex.: `imovel`, `alerta`), `agregado_id`, `tipo_evento`, `payload` `jsonb`,
+`disponivel_em`, `publicado_em` `NULL`, `tentativas`. Gravada **na mesma transação** da mudança de
+estado; um relay publica no RabbitMQ (**at-least-once**, sem perder evento).
+
+### `notificacao_enviada` (ADR-0018 / idempotência)
+`id` (PK), `usuario_id` (FK), `tipo_evento`, `imovel_id` (FK **NULL**), `janela` (ex.: dia),
+`canal` (`canal_alerta`), `enviado_em`, `status` (`enviado|falha|bounce|complaint`).
+**uq**(`usuario_id`, `tipo_evento`, `imovel_id`, `janela`) → dedup de envio.
 
 ## Índices e busca
 - Filtros: `ix_imovel_municipio`, `ix_imovel_tipo`, `ix_imovel_modalidade`, `ix_imovel_status` e

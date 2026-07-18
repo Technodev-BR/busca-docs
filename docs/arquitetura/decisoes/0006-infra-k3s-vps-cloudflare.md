@@ -5,7 +5,7 @@
 
 ## Contexto
 A produção rodará em uma **VPS da Hostinger** (nó único) com **k3s** já instalado. O domínio
-**`technodev.com.br`** está na **Cloudflare**. Queremos: expor **publicamente apenas uma ferramenta
+**`technodevbr.com`** está na **Cloudflare**. Queremos: expor **publicamente apenas uma ferramenta
 de gerenciamento** do cluster (ver pods etc.), mantendo **todo o resto interno**, acessível via
 **VPN**.
 
@@ -13,11 +13,11 @@ de gerenciamento** do cluster (ver pods etc.), mantendo **todo o resto interno**
 - **Orquestrador**: **k3s** (Kubernetes leve) em **nó único** na VPS Hostinger.
 - **Ingress**: **Traefik**, **subido por nós** (Helm, *values* próprios, no GitOps) — o Traefik
   embutido do k3s fica **desabilitado** (`--disable traefik`). Substitui o Ingress-NGINX citado antes.
-- **DNS**: **Cloudflare** para `technodev.com.br` (subdomínios por serviço).
+- **DNS**: **Cloudflare** para `technodevbr.com` (subdomínios por serviço).
 - **TLS**: **cert-manager** com **desafio DNS-01 da Cloudflare** (funciona também para hosts
   internos, que não são acessíveis pela internet). Alternativa: ACME embutido do Traefik com
   provider Cloudflare.
-- **Exposição pública**: **somente** a ferramenta de gerenciamento (ex.: `portainer.technodev.com.br`),
+- **Exposição pública**: **somente** a ferramenta de gerenciamento (ex.: `portainer.technodevbr.com`),
   protegida por autenticação (e, opcionalmente, Cloudflare Access).
 - **Acesso interno**: todo o resto (app, Argo CD, Grafana, RabbitMQ mgmt, etc.) só via **VPN**.
 - **Gerenciamento**: uma UI de cluster (ver [Gerenciamento do cluster](../../infraestrutura/gerenciamento-cluster.md)).

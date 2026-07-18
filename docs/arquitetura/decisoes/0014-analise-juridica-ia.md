@@ -1,7 +1,7 @@
 # ADR-0014 — Análise jurídica de investimento assistida por IA
 
-- **Status:** Proposto
-- **Data:** 2026-07-18
+- **Status:** Aceito (implementação na **Fase 9** do [roadmap](../../visao-geral/roadmap.md); MVP não depende dela)
+- **Data:** 2026-07-18 · **Aceito em:** 2026-07-18
 
 ## Contexto
 Muitos imóveis de leilão escondem detalhes jurídicos que **mudam o valor real do negócio**:
@@ -28,6 +28,28 @@ edital/matrícula/detalhe e produz uma **saída estruturada** (flags + parecer) 
   ou modelo self-hosted) sem acoplar o domínio.
 - **Custo/limite**: rodar **sob demanda/priorizado** (não em todos os imóveis de uma vez) para
   controlar custo de inferência.
+
+## Arquitetura, robustez e escala
+- **Event-driven** (ADR-0005): consumidor da fila `imovel.analisar_juridico`, disparado **após** o
+  enriquecimento (ADR-0010) e **priorizado** por `desconto_real` (analisar primeiro o que interessa).
+- **Pipeline determinístico → IA:**
+  1. **Extração de texto** do PDF (edital/matrícula) com camada determinística (parser + OCR quando
+     necessário).
+  2. **Redação de PII** (nomes, CPF/CNPJ, etc.) **antes** de qualquer prompt — LGPD by design.
+  3. **Pré-filtro por regras/regex** (penhora, usufruto, fração…) para baratear e ancorar a IA.
+  4. **LLM com saída estruturada** validada por **JSON Schema** (`AnaliseJuridica`/`FlagJuridica` —
+     [openapi-api.yaml](../../contratos/openapi-api.yaml)); **retry com reparo** se o JSON não validar.
+  5. **Grounding**: cada flag guarda o **trecho citado**; sem trecho → `presente=false`/"não identificado".
+- **Roteamento de modelo (custo):** modelo **barato** primeiro; **escalar** para modelo maior só em
+  baixa confiança ou alto valor. **Orçamento diário de tokens** com corte suave (adia o restante).
+- **Idempotência e cache:** chave por `hash(texto_redigido) + versao_prompt + modelo`. Reprocessa só
+  quando muda o documento, o prompt ou o modelo — evita custo repetido.
+- **Human-in-the-loop:** confiança abaixo do limiar **ou** alto valor → fila de **revisão humana**
+  antes de exibir como "confirmado".
+- **Resiliência:** timeout + retry com backoff; falha persistente → **DLQ** e imóvel fica com IA
+  `status=falha` (score usa só sinais determinísticos, confiança reduzida).
+- **Observabilidade:** custo/tokens por análise, latência, `% flags com grounding`, taxa de reparo de
+  JSON, amostragem periódica para medir **alucinação** (ver [pilares](../../observabilidade/pilares.md)).
 
 ## Consequências
 - **+** Diferencial forte: transforma leitura jurídica manual em **triagem automática** e ajuda a

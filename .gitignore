@@ -6,10 +6,10 @@ node_modules/
 docs/.vitepress/dist/
 docs/.vitepress/cache/
 
-# Diagramas exportados (pasta temporaria da action de export)
-docs/assets/diagramas/export/
-# Obs.: docs/public/diagramas/ e' versionado com placeholders para o build local
-# nao quebrar; o CI sobrescreve com os SVGs reais renderizados dos .drawio.
+# Diagramas: os .drawio (fonte, gerados pelo script) sao versionados.
+# Os .svg sao derivados (placeholder local via npm run pre*, reais no CI), nao versionar.
+docs/public/diagramas/export/
+docs/public/diagramas/*.svg
 
 # Python
 .venv/

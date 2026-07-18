@@ -125,8 +125,11 @@ cd backend
 - `GET /api/v1/imoveis` — busca/filtros/mapa (paginado).
 - `GET /api/v1/imoveis/{id}` — detalhe + análise de custo.
 - `GET /api/v1/imoveis/{id}/historico` — histórico de preço/status.
-- `GET|POST|DELETE /api/v1/favoritos` · `GET|POST|PUT|DELETE /api/v1/alertas` — engajamento (JWT).
-- `POST /api/v1/auth/registrar|login` — autenticação.
+- `GET|POST|DELETE /api/v1/favoritos` · `GET|POST|PUT|DELETE /api/v1/alertas` — engajamento (requer sessão autenticada).
+- **Autenticação (OIDC social / BFF)** — **sem senha armazenada** (ver [ADR-0013](../arquitetura/decisoes/0013-autenticacao-social-oidc.md)):
+  - `GET /oauth2/authorization/{google|github}` — inicia o fluxo Authorization Code + PKCE.
+  - `GET /login/oauth2/code/{provedor}` — callback; emite **cookies HttpOnly** (access + refresh).
+  - `GET /api/v1/auth/me` — usuário autenticado · `POST /api/v1/auth/refresh` — rotaciona o refresh · `POST /api/v1/auth/logout` — revoga a sessão.
 
 **API interna de ingestão** — contrato em [API de Ingestão](../contratos/api-ingestao.md) /
 [openapi-ingestao.yaml](../contratos/openapi-ingestao.yaml):

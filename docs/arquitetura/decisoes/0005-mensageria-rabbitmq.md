@@ -25,8 +25,13 @@ para mensagens com falha, e **idempotência** por `codigo` do imóvel.
 - **+** Ingestão rápida; processamento **desacoplado**, **escalável** e **resiliente** (retry/DLQ).
 - **+** Permite reprocessar a partir do `coleta_bruta` sem re-baixar.
 - **−** Mais uma peça de infra para operar/observar (métricas de fila, consumidores).
-- No **MVP** é possível começar **sem fila** (processar no próprio serviço) e ligar o RabbitMQ
-  quando o volume/latência justificar — mas já desenhamos o contrato de eventos desde o início.
+- O RabbitMQ é a **arquitetura-alvo** e o restante da documentação (enriquecimento paced, DLQ,
+  eventos `imovel.*`, notificações) **assume filas**. A opção de "começar sem fila" abaixo vale
+  **apenas para bootstrap/dev local**, não como alternativa de produção.
+
+> **Nota (alternativa histórica):** era possível começar **sem fila** (processar no próprio serviço)
+> e ligar o RabbitMQ depois. Mantido apenas como registro; o alvo do MVP **já inclui RabbitMQ**
+> porque o enriquecimento por detalhe é event-driven e *paced* (ADR-0010).
 
 ## Alternativas consideradas
 - **Kafka**: excelente para altíssimo volume/streaming, porém mais complexo de operar — exagero

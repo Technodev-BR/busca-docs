@@ -14,7 +14,7 @@ queremos gastar CPU/RAM com a aplicação, não com a ferramenta de gestão.
 Adotar o **Portainer** como ferramenta padrão de gerenciamento do cluster, complementado pelo
 **k9s** no dia a dia via VPN.
 
-- **Portainer** exposto **publicamente** em `portainer.technodev.com.br`, com **autenticação**
+- **Portainer** exposto **publicamente** em `portainer.technodevbr.com`, com **autenticação**
   própria e, de preferência, **Cloudflare Access** na frente. Instalado via Helm no GitOps.
 - **k9s** (TUI) para operação rápida por SSH/VPN — footprint **zero** no cluster.
 - **Argo CD** (estado das apps) e **Grafana** (métricas/logs) já cobrem parte do "observar", então

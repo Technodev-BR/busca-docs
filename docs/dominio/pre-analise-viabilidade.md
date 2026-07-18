@@ -5,13 +5,16 @@ Um **score** que resume, em um número, quão promissor é um imóvel — para *
 
 ## Sinais que entram no score
 
-| Sinal | Peso (sugerido) | Direção |
+Pesos e fórmulas **fechados** na [especificação v0 do score](score-v0-spec.md) (fonte da verdade
+para implementação e testes). Resumo dos sinais do MVP:
+
+| Sinal | Peso (v0) | Direção |
 |---|---|---|
-| **Desconto real** (após custo total, base 2ª praça) | alto | quanto maior, melhor |
-| **Liquidez da região** (demanda/venda) | médio | quanto maior, melhor |
-| **Riscos do edital** (ocupação, dívidas) | alto | quanto maior, pior |
-| **Modalidade** (leilão x venda direta) | baixo | ajuste fino |
-| **Estado de conservação / reforma** | médio | maior reforma, pior |
+| **Desconto real** (após custo total, base 2ª praça) | 0.40 | quanto maior, melhor |
+| **Ocupação** (`situacao_ocupacao`) | 0.20 | ocupado penaliza |
+| **Ônus/dívidas do comprador** | 0.15 | dívida/ônus penaliza |
+| **Liquidez da região** (demanda/venda) | 0.15 | quanto maior, melhor (neutro no MVP) |
+| **Acesso a crédito** (FGTS/financiamento) | 0.10 | mais opções, melhor |
 
 ## Sinais vindos do enriquecimento (detalhe)
 Vários sinais só existem após o [enriquecimento por detalhe](../dados/fonte-caixa-detalhe.md)
@@ -38,7 +41,8 @@ adiciona flags que **pesam bastante** no score:
 
 ## Modelo (evolução em fases)
 
-1. **Heurístico (MVP):** soma ponderada normalizada (0–100). Transparente e explicável.
+1. **Heurístico (MVP):** soma ponderada normalizada (0–100), com fórmula, subscores e exemplos
+   golden em [score-v0-spec.md](score-v0-spec.md). Transparente e explicável.
 2. **Com dados de mercado:** incorporar valor de mercado e histórico de preço.
 3. **Com IA:** LLM resume o **edital**/matrícula, extrai riscos jurídicos (nua-propriedade, fração,
    ônus) que alimentam o score e gera um parecer ("vale a pena?"). Ver
@@ -47,7 +51,9 @@ adiciona flags que **pesam bastante** no score:
 
 ## Explicabilidade
 O score sempre vem acompanhado dos **fatores** que mais pesaram (ex.: "+ desconto real 22%,
-− imóvel ocupado"). Nunca é uma "caixa-preta".
+− imóvel ocupado"). Nunca é uma "caixa-preta". Esses fatores são expostos no contrato como
+`AnaliseCusto.fatores[]` (schema `FatorScore` — ver [openapi-api.yaml](../contratos/openapi-api.yaml)),
+com `confianca` e `versaoScore`.
 
 ## Confiança do score (dados faltantes)
 O score carrega um **nível de confiança** conforme o `status_enriquecimento` do imóvel:

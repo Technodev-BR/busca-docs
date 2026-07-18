@@ -13,12 +13,12 @@
 | RF-07 | Gerar **pré-análise de viabilidade** (score). |
 | RF-08 | Permitir **favoritar** imóveis e criar **alertas** por filtro (requer **login social** Google/GitHub). |
 | RF-09 | Comparar 2+ imóveis lado a lado. |
-| RF-10 | (Evolução) Resumir edital e emitir parecer com **IA**. |
-| RF-14 | (Evolução) **Análise jurídica com IA**: detectar nua-propriedade, fração ideal, usufruto, direitos reais e **ônus/gravames** para indicar os **melhores negócios**. |
-| RF-15 | Na tela de detalhe: **cronômetro** dos leilões, **aviso de ocupação** e **mini-mapa** da localização. |
+| RF-10 | (Evolução) **Resumo do edital em linguagem simples** com IA — parecer textual explicativo. Subconjunto textual de RF-14; a extração **estruturada** de flags fica em RF-14. Ver [ADR-0014](../arquitetura/decisoes/0014-analise-juridica-ia.md). |
 | RF-11 | Painel de **status das coletas** (última "Data de geração" por UF). |
 | RF-12 | **Enriquecer** o imóvel pela página de detalhe (1º/2º leilão, edital, dívidas, ocupação, fotos). |
 | RF-13 | Tratar **ciclo de vida**: marcar **vendido/removido** quando sai do CSV e **notificar** favoritos. |
+| RF-14 | (Evolução) **Análise jurídica com IA (estruturada)**: detectar nua-propriedade, fração ideal, usufruto, direitos reais e **ônus/gravames** (flags + grounding) para indicar os **melhores negócios**. Ver [ADR-0014](../arquitetura/decisoes/0014-analise-juridica-ia.md). |
+| RF-15 | Na tela de detalhe: **cronômetro** dos leilões, **aviso de ocupação** e **mini-mapa** da localização. |
 
 ## Requisitos não-funcionais (RNF)
 

@@ -34,8 +34,8 @@ Como o **2º leilão costuma ser o menor** (melhor entrada), ele deve ser a **ba
 | Item | Como é obtido | Observações |
 |---|---|---|
 | **Valor de arremate** | `valor_segundo_leilao` (detalhe) → fallback `valor_primeiro_leilao`/`valor_minimo` | Base do cálculo (ver acima) |
-| **ITBI** | `aliquota_municipio × base` | Alíquota **varia por município** → tabela configurável |
-| **Custas / comissão** | % sobre o arremate | Normalmente só em **leilão** (ver RN-04) |
+| **ITBI** | `aliquota_municipio × base` | Base = **maior entre arremate e valor venal de referência** (STJ Tema 1.113). Alíquota real por município ([parâmetros](../dados/parametros-custo.md#1-itbi-aliquota_itbi)): capitais ~3% (Curitiba 2,7%), demais ~2% |
+| **Comissão de leiloeiro** | **5% da proposta** em **leilão/licitação**; **0% em Venda Online/Compra Direta** | Paga pelo arrematante, **fora do lance** (confirmado nos editais Caixa); na venda direta a corretagem é paga pela Caixa. Ver RN-04 e [parâmetros](../dados/parametros-custo.md#2-custas--comissao-de-leiloeiro-parametro_custo-chavecustas_pct) |
 | **Registro em cartório** | Tabela/estimativa por faixa de valor | Varia por estado |
 | **Dívidas** | Flags do detalhe (`despesas_condominio/tributos_comprador`) + edital | Se por conta do **comprador**, somar estimativa; senão, zero |
 | **Reforma estimada** | Estimativa do usuário ou heurística | Configurável (R$/m² por tipo) |
@@ -53,7 +53,10 @@ O detalhe **nem sempre** vem completo — o cálculo precisa ser **defensivo**:
   **marcar como estimativa provisória**, recalculando quando `imovel.enriquecido` chegar.
 
 ## Parâmetros configuráveis
-- **Alíquota de ITBI por município** (com valor default por UF).
+Defaults, fontes e versionamento em [Parâmetros de custo](../dados/parametros-custo.md)
+(tabelas `aliquota_itbi` e `parametro_custo`). O cálculo grava a `parametro_custo_versao` usada.
+
+- **Alíquota de ITBI por município** (com valor default por UF e nacional).
 - **% de custas** por modalidade.
 - **Custo de registro** por faixa de valor.
 - **R$/m² de reforma** por tipo de imóvel.

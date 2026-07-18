@@ -6,8 +6,19 @@ Enxergar o sistema em produção com **métricas, logs e traces**. Tudo instrume
 - **Java**: **Micrometer** (via Spring Boot Actuator) expondo `/actuator/prometheus`.
 - **Python**: `prometheus-client` no coletor (duração do job, nº de imóveis, falhas por UF).
 - **Coleta**: **Prometheus** faz *scrape*; **Grafana** para dashboards.
-- **Chave**: latência p50/p95/p99 da API, taxa de erro (5xx), throughput, saturação (CPU/mem/pool);
-  coletor: itens processados, novos/atualizados, tempo por UF.
+- **Chave (técnicas)**: latência p50/p95/p99 da API, taxa de erro (5xx), **taxa de 429**
+  (rate limiting — [ADR-0019](../arquitetura/decisoes/0019-rate-limiting-quotas.md)), throughput,
+  saturação (CPU/mem/pool); coletor: itens processados, novos/atualizados, tempo por UF.
+
+### Métricas de negócio
+Além da infra, instrumentar sinais de **produto** (dashboards + alertas):
+
+- **Imóveis ativos** por UF/tipo; **% enriquecido** (`status_enriquecimento = ok`).
+- **Fila de enriquecimento**: profundidade e **taxa de detalhe/min** (o gargalo *paced*).
+- **% geocodado** ([ADR-0016](../arquitetura/decisoes/0016-geocoding.md)) — cobertura do mapa.
+- **Alertas disparados** e **notificações enviadas/falhas** ([ADR-0018](../arquitetura/decisoes/0018-notificacoes.md)).
+- **Login**: taxa de sucesso do callback OIDC, refresh/reuso detectado.
+- **DLQ**: mensagens em dead-letter por fila (canário de parser/layout).
 
 ## Logs
 - **JSON estruturado** (Java: Logback + `logstash-logback-encoder`; Python: `structlog`).

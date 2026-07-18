@@ -12,5 +12,6 @@ Do ambiente de desenvolvimento à produção em k3s.
 | [Configuração & segredos](configuracao-e-segredos.md) | Variáveis por serviço e gestão de segredos |
 | [Backup & Disaster Recovery](backup-e-dr.md) | Backup/restore do Postgres e recuperação da VPS |
 | [Registry (Harbor)](registry-harbor.md) | Registro de imagens + Trivy/Cosign |
+| [Portal de documentação](portal-docs.md) | Manutenção do site VitePress (build, deploy, diagramas) |
 
 Ver também: [Qualidade](../qualidade/README.md) · [Observabilidade](../observabilidade/README.md).

@@ -24,7 +24,27 @@ Sinais **do imóvel** (nunca perfil de pessoas — ver LGPD abaixo):
 | **Ação/processo e foro** | Complexidade e prazo. |
 
 Saída **estruturada** (JSON) + **parecer** em linguagem natural com **nível de confiança** e
-**citação dos trechos** que embasaram cada flag (grounding — nada de "achismo").
+**citação dos trechos** que embasaram cada flag (grounding — nada de "achismo"). Persistida na
+tabela [`analise_juridica`](../dados/modelo-de-dados.md#analise_juridica-ia--adr-0014-evolução) e
+exposta no contrato como schema `AnaliseJuridica`/`FlagJuridica`
+([openapi-api.yaml](../contratos/openapi-api.yaml)).
+
+```json
+{
+  "resumo": "Imóvel de propriedade plena, desocupado, sem ônus identificados. Negócio de baixo risco jurídico. Confira o edital.",
+  "nivelRisco": "baixo",
+  "flags": [
+    { "tipo": "nua_propriedade", "presente": false, "confianca": 0.9, "origem": "matricula" },
+    { "tipo": "penhora", "presente": true, "confianca": 0.68,
+      "trechoCitado": "consta penhora nos autos da execução nº ...", "origem": "matricula" }
+  ],
+  "modelo": "gpt-4o-mini",
+  "versaoPrompt": "v1",
+  "fonte": "ambos",
+  "status": "ok",
+  "analisadoEm": "2026-07-18T12:00:00Z"
+}
+```
 
 ## Como alimenta o produto
 - Vira **flags/riscos** na [pré-análise](pre-analise-viabilidade.md) e ajusta o **score** (ex.:

@@ -31,7 +31,9 @@ paths:
               $ref: '#/components/schemas/LoteImoveis'
       responses:
         '202':
-          description: Lote aceito para processamento assíncrono
+          description: >
+            Lote aceito para processamento assíncrono. Idempotente: o replay da mesma
+            Idempotency-Key retorna este mesmo 202 com o mesmo loteId (não reprocessa).
           content:
             application/json:
               schema:
@@ -40,8 +42,6 @@ paths:
           $ref: '#/components/responses/ProblemaValidacao'
         '401':
           description: Token interno ausente ou inválido
-        '409':
-          description: Lote duplicado (mesma Idempotency-Key já processada)
 
   /internal/ingest/imoveis/{codigo}/detalhe:
     post:
@@ -69,15 +69,15 @@ paths:
               $ref: '#/components/schemas/DetalheImovel'
       responses:
         '202':
-          description: Detalhe aceito para processamento assíncrono
+          description: >
+            Detalhe aceito para processamento assíncrono. Idempotente: o replay da mesma
+            Idempotency-Key retorna este mesmo 202 (não reprocessa).
         '400':
           $ref: '#/components/responses/ProblemaValidacao'
         '401':
           description: Token interno ausente ou inválido
         '404':
           description: Imóvel (codigo) ainda não ingerido pelo CSV
-        '409':
-          description: Detalhe duplicado (mesma Idempotency-Key já processada)
 
 components:
   securitySchemes:

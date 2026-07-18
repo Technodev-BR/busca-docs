@@ -38,6 +38,21 @@ function toLink(absFile: string): string {
   return '/' + rel
 }
 
+// VitePress nao trata README.md como index automaticamente. Varremos todos os
+// README.md e mapeamos README.md -> index.md para que '/', '/produto/', etc. existam.
+function buildReadmeRewrites(dir: string, acc: Record<string, string> = {}): Record<string, string> {
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    const abs = path.join(dir, e.name)
+    if (e.isDirectory()) {
+      buildReadmeRewrites(abs, acc)
+    } else if (e.isFile() && e.name.toLowerCase() === 'readme.md') {
+      const rel = path.relative(DOCS_ROOT, abs).split(path.sep).join('/')
+      acc[rel] = rel.replace(/README\.md$/i, 'index.md')
+    }
+  }
+  return acc
+}
+
 // Constroi os itens de uma pasta (arquivos .md + subpastas recursivamente).
 function buildItems(dir: string): any[] {
   const entries = fs.readdirSync(dir, { withFileTypes: true })
@@ -89,12 +104,15 @@ export default defineConfig({
   title: 'Busca-Busca',
   description:
     'Documentacao docs-first da plataforma de busca e pre-analise de imoveis em leilao.',
-  base: '/busca-docs/',
+  // Dominio proprio (GitHub Pages) serve na raiz -> base '/'.
+  // Se voltar a usar a URL technodev-br.github.io/busca-docs/, troque para '/busca-docs/'.
+  base: '/',
   cleanUrls: true,
+  rewrites: buildReadmeRewrites(DOCS_ROOT),
   lastUpdated: true,
-  // Paliativo: muitos links internos apontam para .drawio/.yaml (fontes) e paths
-  // relativos entre pastas. Nao falhar o build por isso enquanto e' portal temporario.
-  ignoreDeadLinks: true,
+  // Checagem real de links quebrados (.md). Ignora apenas links para arquivos-fonte
+  // (.yaml/.drawio) e localhost, que nao sao paginas do site.
+  ignoreDeadLinks: [/\.ya?ml(#.*)?$/, /\.drawio(#.*)?$/, 'localhostLinks'],
   themeConfig: {
     logo: undefined,
     outline: { level: [2, 3], label: 'Nesta pagina' },

@@ -33,5 +33,25 @@ O que evita a recorrência (teste, alerta, limite).
 - **Coleta diária falhou** → checar disponibilidade do CSV da Caixa; reprocessar do `coleta_bruta`.
 - **Latência p95 acima do SLO** → checar saturação (pool de conexões, CPU); cache/índices.
 - **Banco indisponível** → checar CloudNativePG/serviço gerenciado; conexões; disco.
+- **DLQ crescendo (enriquecimento)** → possível mudança de layout; inspecionar mensagens; corrigir
+  parser; reprocessar do `coleta_bruta`.
+- **Parser de detalhe vazio (canário)** → HTML mudou; pausar enriquecimento (kill-switch); ajustar
+  seletores; validar com fixtures.
+- **Fila RabbitMQ travada / sem consumo** → checar consumidores, `prefetch`, conexões; reiniciar worker.
+
+## Caixa: 429 / bloqueio de coleta
+**Sintoma:** alta taxa de `403/429`, CAPTCHA ou timeouts vindos do site da Caixa; enriquecimento
+parado ou lento. **Severidade:** warning → critical se persistir.
+
+**Diagnóstico:** métrica de `403/429` por host; taxa de detalhe/min; logs do downloader.
+
+**Mitigação (em ordem):**
+1. **Reduzir a taxa** (baixar req/min e concorrência — [política de coleta](../legal/politica-de-coleta.md)).
+2. Se persistir, **acionar o kill-switch** `COLETA_HABILITADA=false` (pausa enriquecimento sem deploy).
+3. **Registrar incidente** (horário, escopo, evidências) e **não** tentar contornar a proteção.
+4. Reavaliar os **termos VOL**; retomar **só após revisão** e com taxa reduzida.
+
+**Prevenção:** limites conservadores, backoff, circuit breaker automático e cache de mídia
+([ADR-0017](../arquitetura/decisoes/0017-object-storage.md)).
 
 > O [agente AIOps](aiops-mcp.md) sugere o runbook aplicável junto do diagnóstico.

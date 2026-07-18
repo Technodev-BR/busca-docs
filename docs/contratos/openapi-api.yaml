@@ -7,7 +7,7 @@ info:
     Erros seguem Problem Details (RFC 7807). Ver casos de uso em docs/servicos/backend-java.md.
   version: 1.0.0
 servers:
-  - url: https://api.technodev.com.br
+  - url: https://api.technodevbr.com
     description: Produção (via Traefik/Cloudflare)
   - url: http://localhost:8080
     description: Desenvolvimento
@@ -461,6 +461,11 @@ components:
               type: array
               items: { type: string, format: uri }
             analise: { $ref: '#/components/schemas/AnaliseCusto' }
+            analiseJuridica:
+              allOf:
+                - $ref: '#/components/schemas/AnaliseJuridica'
+              nullable: true
+              description: Presente só quando a análise jurídica com IA rodou (RF-14, evolução).
             statusEnriquecimento: { $ref: '#/components/schemas/StatusEnriquecimento' }
             atualizadoEm: { type: string, format: date-time }
 
@@ -474,9 +479,100 @@ components:
         reformaEstimada: { type: number, format: double }
         custoTotal: { type: number, format: double }
         descontoRealPct: { type: number, format: double }
-        score: { type: integer }
+        score: { type: integer, minimum: 0, maximum: 100, example: 78 }
+        confianca:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+          description: >
+            Confiança do score em [0,1], reduzida quando faltam sinais do enriquecimento
+            (statusConfianca != ok). Ver docs/dominio/score-v0-spec.md.
+          example: 0.85
+        versaoScore:
+          type: string
+          description: Versão do algoritmo de score usado (ex.: v0-heuristico).
+          example: v0-heuristico
+        fatores:
+          type: array
+          description: Fatores que mais pesaram no score (explicabilidade — nunca caixa-preta).
+          items: { $ref: '#/components/schemas/FatorScore' }
         statusConfianca: { $ref: '#/components/schemas/StatusEnriquecimento' }
         calculadoEm: { type: string, format: date-time }
+
+    FatorScore:
+      type: object
+      description: Contribuição individual de um sinal ao score (para exibir "+/-" na UI).
+      properties:
+        nome:
+          type: string
+          description: Identificador do sinal.
+          example: desconto_real
+        rotulo:
+          type: string
+          description: Texto amigável exibido ao usuário.
+          example: 'Desconto real de 34%'
+        contribuicao:
+          type: number
+          format: double
+          description: Pontos que o sinal somou (+) ou subtraiu (-) do score.
+          example: 21.5
+        direcao:
+          type: string
+          enum: [positivo, negativo, neutro]
+          example: positivo
+
+    AnaliseJuridica:
+      type: object
+      description: >
+        Saída da análise jurídica com IA (RF-14 / ADR-0014). NÃO é parecer jurídico — triagem com
+        grounding. Espelha a tabela analise_juridica. Ver docs/dominio/analise-juridica-ia.md.
+      properties:
+        resumo:
+          type: string
+          description: Parecer em linguagem simples (RF-10). Sempre acompanhado de disclaimer.
+        nivelRisco:
+          type: string
+          enum: [baixo, medio, alto]
+        flags:
+          type: array
+          items: { $ref: '#/components/schemas/FlagJuridica' }
+        modelo:
+          type: string
+          description: Modelo/versão do LLM usado.
+          example: gpt-4o-mini
+        versaoPrompt: { type: string, example: v1 }
+        fonte:
+          type: string
+          enum: [edital, matricula, ambos]
+        status: { $ref: '#/components/schemas/StatusEnriquecimento' }
+        analisadoEm: { type: string, format: date-time }
+
+    FlagJuridica:
+      type: object
+      description: Fato jurídico detectado, com grounding (trecho citado).
+      required: [tipo, presente]
+      properties:
+        tipo:
+          type: string
+          enum:
+            [nua_propriedade, usufruto, fracao_ideal, servidao, penhora, hipoteca,
+             alienacao_fiduciaria, indisponibilidade, ocupacao, dividas, direito_preferencia, outro]
+        presente:
+          type: boolean
+          description: Se o fato foi identificado no documento.
+        confianca:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+          example: 0.72
+        trechoCitado:
+          type: string
+          description: Trecho do edital/matrícula que embasa a flag (grounding). Sem PII de pessoas.
+        origem:
+          type: string
+          enum: [edital, matricula]
 
     HistoricoPreco:
       type: object

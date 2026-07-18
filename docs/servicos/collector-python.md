@@ -13,14 +13,14 @@ Duas responsabilidades: **coleta em lote (CSV)** e **enriquecimento por detalhe 
 | `parsear_csv(bytes)` | `sources/caixa/parser.py` | `latin1`, pula 2 linhas, separador `;`, `trim`, números BR → tipos. |
 | `mapear(linha)` | `sources/caixa/mapper.py` | Linha CSV → `ImovelColetado`; extrai tipo/áreas da descrição. |
 | `enviar_lote(imoveis)` | `sinks/api_client.py` | `POST /internal/ingest/imoveis` com `Idempotency-Key` por lote. |
-| `executar(uf?)` | `pipeline.py` | Orquestra download→parse→map→envio por UF; guarda `coleta_bruta` (comprimido) e emite métricas. |
+| `executar(uf?)` | `pipeline.py` | Orquestra download→parse→map→envio por UF; envia o **payload bruto** no lote (o **backend** persiste em `coleta_bruta` — o Python não escreve no banco) e emite métricas. |
 | `agendar()` | `scheduler.py` | Dispara a coleta ~1x/dia (APScheduler ou cron do container). |
 
 ### Enriquecimento por detalhe (consumidor RabbitMQ)
 | Função | Módulo | Responsabilidade |
 |---|---|---|
 | `consumir_enriquecimento()` | `consumers/enriquecimento.py` | Consome `imoveis.enriquecimento`; **ack manual** após `202`; **rate-limited/paced**. |
-| `baixar_detalhe(codigo)` | `sources/caixa/detalhe.py` | `GET detalhe-imovel.asp`; guarda **HTML bruto** em `coleta_bruta`. |
+| `baixar_detalhe(codigo)` | `sources/caixa/detalhe.py` | `GET detalhe-imovel.asp`; envia o **HTML bruto** no payload de detalhe (o **backend** grava em `coleta_bruta`). |
 | `parsear_detalhe(html)` | `sources/caixa/detalhe.py` | Extrai campos (2 praças, datas, edital, dívidas...) com seletores **resilientes**. |
 | `baixar_midias(...)` | `sources/caixa/detalhe.py` | Baixa **fotos**/**PDFs** (edital, matrícula) → object storage. |
 | `detectar_indisponivel(resp)` | `sources/caixa/detalhe.py` | `404`/"imóvel não disponível" → **sinaliza status** (não é erro de parse). Ver [RN-09](../dominio/regras-de-negocio.md#rn-09--ciclo-de-vida-do-imóvel-vendido--removido--reaparecimento). |

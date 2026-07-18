@@ -14,7 +14,7 @@ Avaliamos usar **MkDocs + Material** para gerar um site de documentação. Poré
 
 ## Decisão
 Manter a documentação em **Markdown puro**, organizada por pastas em `docs/`, **sem ferramenta de
-build**. A navegação se dá pelo [README](../../../README.md) (índice) e por **links entre páginas**.
+build**. A navegação se dá pelo [índice da documentação](../../README.md) e por **links entre páginas**.
 
 ## Consequências
 - **+** Zero dependência/tooling; sem o problema do MkDocs 2.0; fácil leitura por humanos e IA.

@@ -7,7 +7,7 @@ Aqui vale a regra do [ADR-0006](../arquitetura/decisoes/0006-infra-k3s-vps-cloud
 ## UI pública: Portainer
 A ferramenta padrão é o **Portainer** (decisão em
 [ADR-0009](../arquitetura/decisoes/0009-gerenciamento-portainer.md)), exposto em
-`portainer.technodev.com.br` com login forte e, de preferência, atrás de **Cloudflare Access**.
+`portainer.technodevbr.com` com login forte e, de preferência, atrás de **Cloudflare Access**.
 É leve (~100–300 MB), tem UI simples para pods/logs/exec/restart e RBAC — ideal para o nó único.
 
 Opções consideradas (contexto: VPS modesta, um nó):
@@ -30,8 +30,8 @@ Opções consideradas (contexto: VPS modesta, um nó):
 - **Lens** (desktop) — GUI rica que roda na sua máquina e conecta via VPN (não precisa expor nada).
 
 ## Aplicações e observabilidade (internos, via VPN)
-- **Argo CD** (`argo.technodev.com.br`) — estado do GitOps, diffs, rollback e sync das apps.
-- **Grafana** (`grafana.technodev.com.br`) — métricas/logs/traces (ver [Observabilidade](../observabilidade/pilares.md)).
+- **Argo CD** (`argo.technodevbr.com`) — estado do GitOps, diffs, rollback e sync das apps.
+- **Grafana** (`grafana.technodevbr.com`) — métricas/logs/traces (ver [Observabilidade](../observabilidade/pilares.md)).
 - **RabbitMQ Management** — filas e mensagens (ver [Eventos RabbitMQ](../contratos/eventos-rabbitmq.md)).
 
 ## Resumo do acesso

@@ -15,7 +15,7 @@ Este é um projeto **docs-first**: **primeiro documentamos, depois codamos**.
 - Decisão técnica nova? Registre um [ADR](../arquitetura/decisoes/README.md).
 - Regra de negócio nova? Documente em [Domínio](../dominio/README.md) antes de implementar.
 - Integração nova? Defina o [contrato](../contratos/README.md) primeiro (API-first).
-- Convenções de escrita e commits em [CONTRIBUTING](../../CONTRIBUTING.md).
+- Convenções de escrita e commits em [CONTRIBUTING](https://github.com/Technodev-BR/busca-docs/blob/main/CONTRIBUTING.md).
 
 ## 3. Suba o ambiente local (quando o código existir)
 O ambiente de desenvolvimento é **Docker Compose** (detalhes em
@@ -33,10 +33,10 @@ Serviços úteis no dev:
 
 | Serviço | URL padrão |
 |---|---|
-| Frontend (Angular) | http://localhost:4200 (ou via Nginx) |
-| API (Java) | http://localhost:8080/api |
-| RabbitMQ management | http://localhost:15672 |
-| Postgres | localhost:5432 |
+| Frontend (Angular) | `http://localhost:4200` (ou via Nginx) |
+| API (Java) | `http://localhost:8080/api` |
+| RabbitMQ management | `http://localhost:15672` |
+| Postgres | `localhost:5432` |
 
 Variáveis e segredos: ver [Configuração & segredos](../infraestrutura/configuracao-e-segredos.md).
 

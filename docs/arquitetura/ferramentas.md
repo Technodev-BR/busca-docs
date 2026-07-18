@@ -2,6 +2,21 @@
 
 Catálogo do toolchain — **open source** sempre que possível.
 
+<div class="logo-grid">
+  <div class="logo-card"><img src="/logos/github.svg" alt="GitHub" /><span>GitHub</span></div>
+  <div class="logo-card"><img src="/logos/githubactions.svg" alt="GitHub Actions" /><span>GitHub Actions</span></div>
+  <div class="logo-card"><img src="/logos/sonarqube.svg" alt="SonarQube" /><span>SonarQube</span></div>
+  <div class="logo-card"><img src="/logos/helm.svg" alt="Helm" /><span>Helm</span></div>
+  <div class="logo-card"><img src="/logos/portainer.svg" alt="Portainer" /><span>Portainer</span></div>
+  <div class="logo-card"><img src="/logos/kubernetes.svg" alt="Kubernetes" /><span>k3s</span></div>
+  <div class="logo-card"><img src="/logos/argocd.svg" alt="Argo CD" /><span>Argo CD</span></div>
+  <div class="logo-card"><img src="/logos/traefik.svg" alt="Traefik" /><span>Traefik</span></div>
+  <div class="logo-card"><img src="/logos/prometheus.svg" alt="Prometheus" /><span>Prometheus</span></div>
+  <div class="logo-card"><img src="/logos/grafana.svg" alt="Grafana" /><span>Grafana</span></div>
+  <div class="logo-card"><img src="/logos/opentelemetry.svg" alt="OpenTelemetry" /><span>OpenTelemetry</span></div>
+  <div class="logo-card"><img src="/logos/cloudflare.svg" alt="Cloudflare" /><span>Cloudflare</span></div>
+</div>
+
 ## Aplicação
 | Área | Ferramenta |
 |---|---|
@@ -28,10 +43,10 @@ Catálogo do toolchain — **open source** sempre que possível.
 | SCM | **GitHub** |
 | CI | **GitHub Actions** |
 | Registry | **Harbor** (OSS) / ghcr.io |
-| Empacotamento | Docker, Helm |
+| Empacotamento | Docker; **Kustomize** (serviços próprios) + **Helm** (charts de terceiros) — [ADR-0015](decisoes/0015-kustomize-apps-helm-terceiros.md) |
 | Orquestração (prod) | **k3s** (VPS Hostinger, nó único), **Argo CD**, **Argo Rollouts** |
 | Ingress/TLS | **Traefik** (subido via Helm; embutido do k3s desabilitado), cert-manager (DNS-01 Cloudflare) |
-| DNS | **Cloudflare** (`technodev.com.br`) |
+| DNS | **Cloudflare** (`technodevbr.com`) |
 | VPN / acesso interno | **Tailscale** / WireGuard (ou Cloudflare Tunnel + Access) |
 | Gerenciamento do cluster | **Portainer** (painel — ADR-0009), **k9s**, Lens (Headlamp: plano B) |
 | Segredos | Sealed Secrets / External Secrets (+ Vault) |
