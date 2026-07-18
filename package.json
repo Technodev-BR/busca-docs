@@ -1,0 +1,15 @@
+{
+  "name": "busca-docs",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Portal de documentacao do Busca-Busca (VitePress) - paliativo em GitHub Pages ate o deploy definitivo via k3s/GitOps (ADR-0011).",
+  "type": "module",
+  "scripts": {
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
+  },
+  "devDependencies": {
+    "vitepress": "^1.6.3"
+  }
+}

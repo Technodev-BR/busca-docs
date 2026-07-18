@@ -1,0 +1,75 @@
+name: Deploy docs (VitePress) to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Uma publicacao por vez; nao cancela deploy em andamento.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Renderiza os diagramas .drawio (fonte versionada) em SVG.
+      - name: Exportar diagramas (.drawio -> SVG)
+        uses: rlespinasse/drawio-export-action@v2
+        with:
+          path: docs/assets/diagramas
+          format: svg
+          output: export
+
+      # Reune os SVGs gerados em docs/public/diagramas (servido como /diagramas/*).
+      - name: Coletar SVGs em docs/public/diagramas
+        run: |
+          mkdir -p docs/public/diagramas
+          find docs/assets/diagramas -name '*.svg' -exec cp {} docs/public/diagramas/ \;
+          echo "SVGs disponiveis:" && ls -la docs/public/diagramas || true
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Build do site
+        run: npm run docs:build
+
+      - name: Configurar Pages
+        uses: actions/configure-pages@v5
+
+      - name: Publicar artefato
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/.vitepress/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy no GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

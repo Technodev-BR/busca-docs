@@ -1,6 +1,15 @@
 # MkDocs
 site/
 
+# Node / VitePress
+node_modules/
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+
+# Diagramas exportados (gerados no build a partir dos .drawio)
+docs/assets/diagramas/export/
+docs/public/diagramas/
+
 # Python
 .venv/
 __pycache__/
