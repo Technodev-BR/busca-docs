@@ -48,7 +48,6 @@ jobs:
           rm -rf docs/public/diagramas/export
           echo "Arquivos disponiveis:" && ls -la docs/public/diagramas || true
 
-          
       - name: Setup Node
         uses: actions/setup-node@v6
         with:

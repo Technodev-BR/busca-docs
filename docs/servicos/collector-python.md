@@ -9,22 +9,22 @@ Duas responsabilidades: **coleta em lote (CSV)** e **enriquecimento por detalhe 
 ### Coleta em lote (CSV, agendada)
 | Função | Módulo | Responsabilidade |
 |---|---|---|
-| `baixar_csv(uf)` | `sources/caixa/downloader.py` | Baixa `Lista_imoveis_{UF}.csv` (httpx + tenacity, backoff em 429/5xx). |
-| `parsear_csv(bytes)` | `sources/caixa/parser.py` | `latin1`, pula 2 linhas, separador `;`, `trim`, números BR → tipos. |
-| `mapear(linha)` | `sources/caixa/mapper.py` | Linha CSV → `ImovelColetado`; extrai tipo/áreas da descrição. |
-| `enviar_lote(imoveis)` | `sinks/api_client.py` | `POST /internal/ingest/imoveis` com `Idempotency-Key` por lote. |
+| `baixar_csv(uf)` | `fontes/caixa/downloader.py` | Baixa `Lista_imoveis_{UF}.csv` (httpx + tenacity, backoff em 429/5xx). |
+| `parsear_csv(bytes)` | `fontes/caixa/parser.py` | `latin1`, pula 2 linhas, separador `;`, `trim`, números BR → tipos. |
+| `mapear(linha)` | `fontes/caixa/mapper.py` | Linha CSV → `ImovelColetado`; extrai tipo/áreas da descrição. |
+| `enviar_lote(imoveis)` | `envio/api_client.py` | `POST /internal/ingest/imoveis` com `Idempotency-Key` por lote. |
 | `executar(uf?)` | `pipeline.py` | Orquestra download→parse→map→envio por UF; envia o **payload bruto** no lote (o **backend** persiste em `coleta_bruta` — o Python não escreve no banco) e emite métricas. |
 | `agendar()` | `scheduler.py` | Dispara a coleta ~1x/dia (APScheduler ou cron do container). |
 
 ### Enriquecimento por detalhe (consumidor RabbitMQ)
 | Função | Módulo | Responsabilidade |
 |---|---|---|
-| `consumir_enriquecimento()` | `consumers/enriquecimento.py` | Consome `imoveis.enriquecimento`; **ack manual** após `202`; **rate-limited/paced**. |
-| `baixar_detalhe(codigo)` | `sources/caixa/detalhe.py` | `GET detalhe-imovel.asp`; envia o **HTML bruto** no payload de detalhe (o **backend** grava em `coleta_bruta`). |
-| `parsear_detalhe(html)` | `sources/caixa/detalhe.py` | Extrai campos (2 praças, datas, edital, dívidas...) com seletores **resilientes**. |
-| `baixar_midias(...)` | `sources/caixa/detalhe.py` | Baixa **fotos**/**PDFs** (edital, matrícula) → object storage. |
-| `detectar_indisponivel(resp)` | `sources/caixa/detalhe.py` | `404`/"imóvel não disponível" → **sinaliza status** (não é erro de parse). Ver [RN-09](../dominio/regras-de-negocio.md#rn-09--ciclo-de-vida-do-imóvel-vendido--removido--reaparecimento). |
-| `enviar_detalhe(codigo, detalhe)` | `sinks/api_client.py` | `POST /internal/ingest/imoveis/{codigo}/detalhe`. |
+| `consumir_enriquecimento()` | `consumidores/enriquecimento.py` | Consome `imoveis.enriquecimento`; **ack manual** após `202`; **rate-limited/paced**. |
+| `baixar_detalhe(codigo)` | `fontes/caixa/detalhe.py` | `GET detalhe-imovel.asp`; envia o **HTML bruto** no payload de detalhe (o **backend** grava em `coleta_bruta`). |
+| `parsear_detalhe(html)` | `fontes/caixa/detalhe.py` | Extrai campos (2 praças, datas, edital, dívidas...) com seletores **resilientes**. |
+| `baixar_midias(...)` | `fontes/caixa/detalhe.py` | Baixa **fotos**/**PDFs** (edital, matrícula) → object storage. |
+| `detectar_indisponivel(resp)` | `fontes/caixa/detalhe.py` | `404`/"imóvel não disponível" → **sinaliza status** (não é erro de parse). Ver [RN-09](../dominio/regras-de-negocio.md#rn-09--ciclo-de-vida-do-imóvel-vendido--removido--reaparecimento). |
+| `enviar_detalhe(codigo, detalhe)` | `envio/api_client.py` | `POST /internal/ingest/imoveis/{codigo}/detalhe`. |
 
 ### Transversais
 Rate limiter global (token bucket), *user-agent* identificável, **idempotência** por `codigo`,
@@ -36,19 +36,19 @@ retry/**DLQ**, `structlog`, métricas Prometheus e **heartbeat** da última exec
 collector/
   pyproject.toml            # deps geridas com uv (ou Poetry)
   src/collector/
-    __main__.py             # entrypoint (roda o pipeline)
+    main.py                 # entrypoint (roda o pipeline)
     config.py               # settings via env (pydantic-settings)
-    sources/
+    fontes/
       caixa/
         downloader.py       # baixa Lista_imoveis_{UF}.csv (httpx + tenacity)
         parser.py           # trata latin1, pula 2 linhas, separador ';'
         mapper.py           # linha CSV -> modelo de domínio
         detalhe.py          # baixa/parseia detalhe-imovel.asp (enriquecimento — ADR-0010)
-    domain/
+    dominio/
       models.py             # ImovelColetado, DetalheImovel (pydantic)
-    sinks/
+    envio/
       api_client.py         # POST /internal/ingest/imoveis[/{codigo}/detalhe]
-    consumers/
+    consumidores/
       enriquecimento.py     # consome imoveis.enriquecimento (RabbitMQ) — paced/rate-limited
     pipeline.py             # orquestra as etapas por UF
     scheduler.py            # APScheduler (1x/dia) — ou usar cron do container
@@ -80,10 +80,10 @@ uv add httpx tenacity pandas pydantic pydantic-settings apscheduler structlog
 uv add --dev pytest ruff mypy
 ```
 
-Rodar o pipeline:
+Rodar o pipeline (após `pip install -e .` ou `uv sync`):
 ```bash
-uv run python -m collector            # coleta padrão
-uv run python -m collector --uf SP    # uma UF
+collector --uf SP --dry-run    # baixa/parseia/mapeia, sem enviar
+collector --uf SP              # coleta e envia ao backend
 ```
 
 ## Regras de parsing
